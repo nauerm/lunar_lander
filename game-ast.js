@@ -11,8 +11,6 @@ var mY = 10;
 
 var gravity = 2; // 1 equals to 1 moon gravity which is 1.62 m/s²
 var grav_inc = gravity/40;
-var thrust = 10;
-var fuel = 3000;
 var keypress = 0;
 var altitude;
 var vel = 0;
@@ -22,11 +20,15 @@ var rotation = 90;
 var rot_rad;
 var turnspeed = 3;
 
+const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
 const SHIP_SIZE = 30; // ship height in pixels
-var SHIP_THRUST = 3; // acceleration of the ship in pixels per second per second
+var SHIP_THRUST = 2; // acceleration of the ship in pixels per second per second
+const SHIP_THRUST_MAX = 2.5;
 const TURN_SPEED = 50; // turn speed in degrees per second
+
+var fuel = MAX_FUEL;
 
 // set up the spaceship object
 var ship = {
@@ -55,7 +57,7 @@ function keys(event)
             if (fuel>0)
             {
             //mY-=thrust;
-            fuel-=(thrust*0.05);
+            fuel-=(SHIP_THRUST*0.05);
             }   
             break;
         case 37: // left pressed
@@ -79,24 +81,22 @@ function keys(event)
         if (fuel>0)
         {
             ship.thrusting = true;
-            fuel-=(thrust*0.05);
+            fuel-=(SHIP_THRUST*0.05);
         }   
         else
         ship.thrusting = false;
     }
 
     // if key is SHIFT, increase thrusters value
-    if(event.keyCode == 16 && SHIP_THRUST <=20)
-    { thrust
-        thrust +=0.5;
-        SHIP_THRUST +=0.5;
+    if(event.keyCode == 16 && SHIP_THRUST <=SHIP_THRUST_MAX)
+    { 
+        SHIP_THRUST +=0.1;
     }
     
     // if key is ctrl, decrease thrusters value
     if(event.keyCode == 17 && SHIP_THRUST >=0)
     { 
-        thrust -=0.5;
-        SHIP_THRUST -=0.5;
+        SHIP_THRUST -=0.1;
     }
     
     // if key is left, add rotation to left
@@ -148,10 +148,10 @@ function drawtexts()
     ctx.fillText("Left and Right: Rotation",670,120);
     
     ctx.font = "20px Verdana";
-    ctx.fillText("Fuel: "+parseFloat(fuel.toFixed(1))+"%",10,30);
+    ctx.fillText("Fuel: "+parseFloat((fuel*100/MAX_FUEL).toFixed(1))+"%",10,30);
     ctx.fillText("Altitude: "+parseFloat(altitude.toFixed(0)),10,60);
     ctx.fillText("Velocity: "+parseFloat(-vel.toFixed(1)),10,90);
-    ctx.fillText("Thrusters: "+parseFloat(thrust.toFixed(1))*100/20+"%",10,120);
+    ctx.fillText("Thrust: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,120);
     
     ctx.font = "12px Verdana";
     const debug_height=225;
@@ -170,10 +170,10 @@ function drawtexts()
     //to do list
     ctx.font = "11px Verdana";
     ctx.fillText("To do list:",10,debug_text_height);
-    ctx.fillText("• Adequate landing area",10,debug_text_height+15);
+    ctx.fillText("• Adequate landing area. Horizontal and vertical velocity indicator",10,debug_text_height+15);
     ctx.fillText("• Win/lose condition and screen",10,debug_text_height+30);
-    ctx.fillText("• Controllable thrust and fire triangle",10,debug_text_height+45);
-    ctx.fillText("• Fix gravity and thrust (should not increase indefinetly)",10,debug_text_height+60);
+    ctx.fillText("• Controllable thrust and fire triangle that oscillates",10,debug_text_height+45);
+    ctx.fillText("• Fix velocity, gravity and thrust (should not increase indefinetly)",10,debug_text_height+60);
     ctx.fillText("• Procedural ground generation",10,debug_text_height+75);
     ctx.fillText("• Bar to indicate fuel",10,debug_text_height+90);
     ctx.fillText("• Better graphics",10,debug_text_height+105);
@@ -185,8 +185,8 @@ function draw()
 {
     if (fuel<0)
     fuel = 0;
-    if (SHIP_THRUST>20)
-    SHIP_THRUST = 20;
+    if (SHIP_THRUST>SHIP_THRUST_MAX)
+    SHIP_THRUST = SHIP_THRUST_MAX;
     if (SHIP_THRUST<0)
     SHIP_THRUST = 0;
     rot_rad = degrees_to_radians(rotation);
@@ -225,7 +225,7 @@ function draw()
      // thrust the ship
      if (ship.thrusting) {
         ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
-        ship.thrust.y -= SHIP_THRUST * Math.sin(ship.a) / FPS;
+        ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
 
         // draw the thruster
         if(SHIP_THRUST>0)
@@ -240,7 +240,7 @@ function draw()
             );
             ctx.lineTo( // rear centre (behind the ship)
                 ship.x - ship.r * 5 / 3 * Math.cos(ship.a),
-                ship.y + ship.r * 5 / 3 * Math.sin(ship.a)+(SHIP_THRUST*3)
+                ship.y + ship.r * 5 / 3 * Math.sin(ship.a)+(SHIP_THRUST*6)
             );
             ctx.lineTo( // rear right
                 ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
@@ -302,7 +302,7 @@ function draw()
 
     // action of gravity
     ship.x += ship.thrust.x;
-    ship.y += ship.thrust.y+gravity;
+    ship.y += ship.thrust.y+vel;
     gravity += grav_inc;
 
     requestAnimationFrame(draw);
