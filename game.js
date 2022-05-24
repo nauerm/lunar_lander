@@ -2,12 +2,10 @@ var cvs = document.getElementById("canvas");
 var ctx = cvs.getContext("2d");
 
 // load images
-var bg = new Image();
 var module = new Image();
 var fire = new Image();
 var X = new Image();
 
-bg.src="images/bg4.png";
 module.src="images/module.png";
 fire.src="images/fire.png";
 X.src="images/X.png";
@@ -26,6 +24,7 @@ var debug_text_height = 385;
 var key;
 var rotation = 90;
 var rot_rad;
+var turnspeed = 3;
 
 // wait function
 function sleep(milliseconds) {
@@ -68,13 +67,13 @@ function keys(event)
     // if key is left, add rotation to left
     if(event.keyCode == 37 && rotation < 180)
     { 
-        rotation += 1;
+        rotation += 1*turnspeed;
     }
     
     // if key is right, add rotation to right
     if(event.keyCode == 39 && rotation > 0)
     { 
-        rotation -= 1;
+        rotation -= 1*turnspeed;
     }
 }
 
@@ -98,7 +97,12 @@ function draw()
     thrust = 0;
     rot_rad = degrees_to_radians(rotation);
     
-    ctx.drawImage(bg, 0, 0);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle="#000000";
+    ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
+
     ctx.drawImage(module, mX, mY);
     
     altitude = cvs.height-(mY+module.height);
