@@ -23,10 +23,10 @@ var turnspeed = 3;
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 20; // ship height in pixels
+const SHIP_SIZE = 10; // ship height in pixels
 var SHIP_THRUST = 0.5; // acceleration of the ship in pixels per second per second
 const SHIP_THRUST_MAX = 2;
-const TURN_SPEED = 50; // turn speed in degrees per second
+const TURN_SPEED = 70; // turn speed in degrees per second
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
 const max_landing_speed = 2.5;
 const angle_lim = 0.15;
@@ -300,6 +300,9 @@ function draw()
     altitude = (cvs.height-ship.y)+ship.r;
     pos[1] = ship.x;
     velx = pos[1]-pos[0];
+    vel =+ gravity;
+
+
     if (fuel<0)
     fuel = 0;
     if (SHIP_THRUST>SHIP_THRUST_MAX)
@@ -352,26 +355,26 @@ function draw()
             ctx.lineWidth = SHIP_SIZE / 10;
             ctx.beginPath();
             ctx.moveTo( // rear left
-                ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
-                ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))+1
+                ship.x - 1.5*ship.r * (2 / 3 * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
+                ship.y + 1.5*ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))
             );
             ctx.lineTo( // rear centre (behind the ship)
-                ship.x - ship.r * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)),
-                ship.y + (ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a))
+                ship.x - 1.5*ship.r * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)),
+                ship.y + 1.5*(ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a))
             );
             ctx.lineTo( // rear right
-                ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
-                ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))+1
+                ship.x - 1.5*ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
+                ship.y + 1.5*ship.r * (2 / 3 * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))
             );
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
         }
     }
-    vel = gravity+ship.thrust.y;
 
     // draw the triangular ship
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "steelblue";
+    ctx.fillStyle = "steelblue";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo( // nose of the ship
@@ -387,6 +390,7 @@ function draw()
         ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
     );
     ctx.closePath();
+    ctx.fill();
     ctx.stroke();
 
     drawFloor();
@@ -400,8 +404,9 @@ function draw()
     // action of gravity
     ship.x += ship.thrust.x;
     ship.y += ship.thrust.y+vel;
-    gravity += grav_inc;  
+    gravity += grav_inc;
 
+    //Success detection
     if((altitude<= 90+ship.r*2) && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) && (ship.x>=470 && ship.x<=580) )
     {
         ship.a = 1.571;
@@ -444,7 +449,7 @@ function draw()
     gravity = 0;
     }
     else
-requestAnimationFrame(draw);
+    requestAnimationFrame(draw);
 }
 
 draw();
