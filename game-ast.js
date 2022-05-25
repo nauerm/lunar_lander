@@ -23,7 +23,7 @@ var turnspeed = 3;
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 15; // ship height in pixels
+const SHIP_SIZE = 20; // ship height in pixels
 var SHIP_THRUST = 0.5; // acceleration of the ship in pixels per second per second
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 50; // turn speed in degrees per second
@@ -280,8 +280,12 @@ function drawFloor()
     );
     ctx.strokeStyle = "white";
     ctx.lineTo( 
+        600,
+        cvs.height-65
+    );
+    ctx.lineTo( 
         cvs.width,
-        cvs.height-80
+        cvs.height-20
     );
     ctx.stroke();
 }
@@ -293,120 +297,113 @@ var velx = 0;
 pos[0] = ship.x;
 function draw()
 {
-    //while(altitude<= 420+ship.r*2 && vel<=max_landing_speed)
-    //{
-        altitude = (cvs.height-ship.y)+ship.r;
-        pos[1] = ship.x;
-        velx = pos[1]-pos[0];
-        if (fuel<0)
-        fuel = 0;
-        if (SHIP_THRUST>SHIP_THRUST_MAX)
-        SHIP_THRUST = SHIP_THRUST_MAX;
-        if (SHIP_THRUST<0)
-        SHIP_THRUST = 0;
-        rot_rad = degrees_to_radians(rotation);
-        
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle="#ffffff";
-        ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
-
-        ctx.drawImage(module, mX, mY);
-        
-        drawtexts();
-        if (keypress == 1 && fuel > 0)
-        {
-        ctx.drawImage(fire, mX, mY);
-        }
-        else if (keypress == 1 && fuel <= 0)
-        {
-        ctx.fillStyle = "red";
-        ctx.font = "30px Trebuchet MS";
-        ctx.fillText("Out of fuel!",370,90);
-        }
-
-        // reload when reaches bottom of the canvas
-        if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
-        {
-            ctx.fillStyle = "red";
-            ctx.font = "20px Trebuchet MS";
-            ctx.fillText("Out of game screen",cvs.width/2-75,cvs.height/2);
-            ship.x = ship.x
-            ship.y = ship.y
-            gravity = 0;
-        }
-        else if (altitude >= 0)
-        {
-        }
-
-        // thrust the ship
-        if (ship.thrusting) {
-            ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
-            ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
-
-            // draw the thruster
-            if(SHIP_THRUST>0)
-            {
-                ctx.fillStyle = "orange";
-                ctx.strokeStyle = "red";
-                ctx.lineWidth = SHIP_SIZE / 10;
-                ctx.beginPath();
-                ctx.moveTo( // rear left
-                    ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
-                    ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))+1
-                );
-                ctx.lineTo( // rear centre (behind the ship)
-                    ship.x - ship.r * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)),
-                    ship.y + (ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a))
-                );
-                ctx.lineTo( // rear right
-                    ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
-                    ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))+1
-                );
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
-        vel = gravity+ship.thrust.y;
-
-        // draw the triangular ship
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = SHIP_SIZE / 20;
-        ctx.beginPath();
-        ctx.moveTo( // nose of the ship
-            ship.x + 4 / 3 * ship.r * Math.cos(ship.a),
-            ship.y - 5 / 3 * ship.r * Math.sin(ship.a)
-        );
-        ctx.lineTo( // rear left
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        );
-        ctx.lineTo( // rear right
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        );
-        ctx.closePath();
-        ctx.stroke();
-
-        drawFloor();
-
-        // rotate the ship
-        if (rotation<180 || rotation >= 0)
-        {
-            ship.a += ship.rot;
-        }
-
-        // action of gravity
-        ship.x += ship.thrust.x;
-        ship.y += ship.thrust.y+vel;
-        gravity += grav_inc;  
+    altitude = (cvs.height-ship.y)+ship.r;
+    pos[1] = ship.x;
+    velx = pos[1]-pos[0];
+    if (fuel<0)
+    fuel = 0;
+    if (SHIP_THRUST>SHIP_THRUST_MAX)
+    SHIP_THRUST = SHIP_THRUST_MAX;
+    if (SHIP_THRUST<0)
+    SHIP_THRUST = 0;
+    rot_rad = degrees_to_radians(rotation);
     
-        if(altitude<= 90+ship.r*2 && 
-            (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) &&
-            (ship.x>=470 && ship.x<=580) )
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle="#ffffff";
+    ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
+
+    ctx.drawImage(module, mX, mY);
+    
+    drawtexts();
+    if (keypress == 1 && fuel > 0)
+    {
+    ctx.drawImage(fire, mX, mY);
+    }
+    else if (keypress == 1 && fuel <= 0)
+    {
+    ctx.fillStyle = "red";
+    ctx.font = "30px Trebuchet MS";
+    ctx.fillText("Out of fuel!",370,90);
+    }
+
+    // pauses when reaches bottom of the canvas
+    if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
+    {
+        ctx.fillStyle = "red";
+        ctx.font = "20px Trebuchet MS";
+        ctx.fillText("Out of game screen",cvs.width/2-75,cvs.height/2);
+        ship.x = ship.x
+        ship.y = ship.y
+        gravity = 0;
+    }
+
+    // thrust the ship
+    if (ship.thrusting) {
+        ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
+        ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
+
+        // draw the thruster
+        if(SHIP_THRUST>0)
         {
+            ctx.fillStyle = "orange";
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = SHIP_SIZE / 10;
+            ctx.beginPath();
+            ctx.moveTo( // rear left
+                ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
+                ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))+1
+            );
+            ctx.lineTo( // rear centre (behind the ship)
+                ship.x - ship.r * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)),
+                ship.y + (ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a))
+            );
+            ctx.lineTo( // rear right
+                ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
+                ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))+1
+            );
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+    vel = gravity+ship.thrust.y;
+
+    // draw the triangular ship
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo( // nose of the ship
+        ship.x + 4 / 3 * ship.r * Math.cos(ship.a),
+        ship.y - 5 / 3 * ship.r * Math.sin(ship.a)
+    );
+    ctx.lineTo( // rear left
+        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+    );
+    ctx.lineTo( // rear right
+        ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+    );
+    ctx.closePath();
+    ctx.stroke();
+
+    drawFloor();
+
+    // rotate the ship
+    if (rotation<180 || rotation >= 0)
+    {
+        ship.a += ship.rot;
+    }
+
+    // action of gravity
+    ship.x += ship.thrust.x;
+    ship.y += ship.thrust.y+vel;
+    gravity += grav_inc;  
+
+    if((altitude<= 90+ship.r*2) && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) && (ship.x>=470 && ship.x<=580) )
+    {
         ship.a = 1.571;
         ship.thrust = 0;
         ctx.fillStyle = "aqua";
@@ -416,38 +413,38 @@ function draw()
         ship.x = ship.x
         ship.y = ship.y
         gravity = 0;
-        }
-        else if(altitude<= 90+ship.r*2 &&
-            ship.a > 1.571+angle_lim)
-        {
-        ctx.fillStyle = "red";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("You crashed. Higher angle");
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else if(altitude<= 90+ship.r*2 &&
-            ship.a < 1.571-angle_lim)
-        {
-        ctx.fillStyle = "red";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("You crashed. Lower angle");
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else if (altitude<= 90+ship.r*2)
-        {
-        ctx.fillStyle = "red";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("Outra coisa");
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else
-    requestAnimationFrame(draw);
     }
+    else if(altitude<= 90+ship.r*2 &&
+        ship.a > 1.571+angle_lim)
+    {
+    ctx.fillStyle = "red";
+    ctx.font = "20px Trebuchet MS";
+    ctx.fillText("You crashed. Tilted module",cvs.width/2-70,cvs.height/2);
+    ship.x = ship.x
+    ship.y = ship.y
+    gravity = 0;
+    }
+    else if(altitude<= 90+ship.r*2 &&
+        ship.a < 1.571-angle_lim)
+    {
+    ctx.fillStyle = "red";
+    ctx.font = "20px Trebuchet MS";
+    ctx.fillText("You crashed. Tilted module",cvs.width/2-70,cvs.height/2);
+    ship.x = ship.x
+    ship.y = ship.y
+    gravity = 0;
+    }
+    else if (altitude<= 20+ship.r*2)
+    {
+    ctx.fillStyle = "red";
+    ctx.font = "20px Trebuchet MS";
+    ctx.fillText("You crashed.",cvs.width/2-70,cvs.height/2);
+    ship.x = ship.x
+    ship.y = ship.y
+    gravity = 0;
+    }
+    else
+requestAnimationFrame(draw);
+}
 
 draw();
