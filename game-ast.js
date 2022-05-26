@@ -37,10 +37,10 @@ var fuel = MAX_FUEL;
 // set up the spaceship object
 var ship = {
     x: 0,
-    y: SHIP_SIZE+5,
+    y: SHIP_SIZE+20,
     r: SHIP_SIZE / 2,
-    a: 3.1, // convert to radians,
-    rot: 0.005,
+    a: 3,
+    rot: 0.002,
     thrusting: false,
     thrust: {
         x: 2,
@@ -417,9 +417,9 @@ function draw()
             }
         }
 
-        // draw the triangular ship
-        ctx.strokeStyle = "steelblue";
-        ctx.fillStyle = "steelblue";
+        // draw ship
+        ctx.strokeStyle = "white";
+        ctx.fillStyle = "black";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo( // nose of the ship
@@ -438,6 +438,34 @@ function draw()
         ctx.fill();
         ctx.stroke();
 
+
+        // draw landing gear
+        var ac = 0.45;
+        var size = SHIP_SIZE/2;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo( // start left
+            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        );
+        ctx.lineTo( // end left
+            
+             ship.x - (ship.r+size) * (2 / 3 * Math.cos(ship.a+ac) + Math.sin(ship.a+ac)),
+             ship.y + (ship.r+size) * (2 / 3 * Math.sin(ship.a+ac) - Math.cos(ship.a+ac))
+        );
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo( // start right
+            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        );
+        ctx.lineTo( // end right
+            ship.x - (ship.r+size) * (2 / 3 * Math.cos(ship.a-ac) - Math.sin(ship.a-ac)),
+            ship.y + (ship.r+size) * (2 / 3 * Math.sin(ship.a-ac) + Math.cos(ship.a-ac))
+        );
+        ctx.stroke();
+
         drawFloor();
 
         // rotate the ship
@@ -454,7 +482,7 @@ function draw()
         gravity += grav_inc;
 
         //Success detection
-        if((altitude<= floor_height+ship.r*2) 
+        if((altitude<= floor_height+ship.r*2+8) 
         && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
         && (ship.x>=470 && ship.x<=580) 
         && (vel_y <=1.5) )
@@ -471,7 +499,7 @@ function draw()
             gravity = 0;       
             game_on = 2; 
         }
-        else if(altitude<= floor_height+ship.r*2 &&
+        else if(altitude<= floor_height+ship.r*2+8 &&
             !(ship.x>=470 && ship.x<=580))
         {
         ctx.fillStyle = "lightgreen";
@@ -483,7 +511,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if(altitude<= floor_height+ship.r*2 &&
+        else if(altitude<= floor_height+ship.r*2+8 &&
             ship.a > 1.571+angle_lim)
         {
         ctx.fillStyle = "lightgreen";
@@ -496,7 +524,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if(altitude<= floor_height+ship.r*2 &&
+        else if(altitude<= floor_height+ship.r*2+8 &&
             ship.a < 1.571-angle_lim)
         {
         ctx.fillStyle = "lightgreen";
@@ -509,7 +537,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if (altitude<= floor_height+ship.r*2)
+        else if (altitude<= floor_height+ship.r*2+8)
         {
         ctx.fillStyle = "lightgreen";
         ctx.font = "20px Trebuchet MS";
