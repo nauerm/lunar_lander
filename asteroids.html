@@ -23,7 +23,7 @@
         // set up the spaceship object
         var ship = {
             x: canv.width / 2,
-            y: 30,
+            y: canv.height / 2,
             r: SHIP_SIZE / 2,
             a: 90 / 180 * Math.PI, // convert to radians
             rot: 0,
@@ -130,7 +130,7 @@
             // move the ship
             var gravity = 2;
             ship.x += ship.thrust.x;
-            ship.y += ship.thrust.y+gravity;
+            ship.y += ship.thrust.y;
 
             // handle edge of screen
             if (ship.x < 0 - ship.r) {
