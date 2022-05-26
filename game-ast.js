@@ -222,32 +222,32 @@ function drawtexts()
     ctx.fillText("Thrusters: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,controls_height+90);
     ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
     
-    // ctx.fillStyle = "#507080";
-    // ctx.font = "9px Verdana";
-    // const debug_height=170;
-    // ctx.fillText("Debug:",10,debug_height);
-    // ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
-    // ctx.fillText("ship.y: "+parseFloat(ship.y.toFixed(1)),10,debug_height+35);
-    // ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+50);
-    // ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
-    // ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
-    // ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
-    // ctx.fillText("Vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
-    // ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
-    // ctx.fillText("Vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
-    // ctx.fillText("ship.y "+parseFloat(ship.x.toFixed(1)),10,debug_height+155);
+    ctx.fillStyle = "#507080";
+    ctx.font = "9px Verdana";
+    const debug_height=190;
+    ctx.fillText("Debug:",10,debug_height);
+    ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
+    ctx.fillText("ship.y: "+parseFloat(ship.y.toFixed(1)),10,debug_height+35);
+    ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+50);
+    ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
+    ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
+    ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
+    ctx.fillText("Vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
+    ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
+    ctx.fillText("Vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
+    ctx.fillText("ship.y "+parseFloat(ship.x.toFixed(1)),10,debug_height+155);
     
-    // //to do list
-    // const todo_height = 380;
-    // ctx.fillStyle = "#507080";
-    // ctx.font = "9px Verdana";
-    // ctx.fillText("To do list:",10,todo_height);
-    // ctx.fillText("• Horizontal and vertical velocity",10,todo_height+15);
-    // ctx.fillText("• Fix fuel consumption",10,todo_height+30);
-    // ctx.fillText("• Win/lose scenarios based on velocity",10,todo_height+45);
-    // ctx.fillText("• Procedural ground generation",10,todo_height+60);
-    // ctx.fillText("• Bar to indicate fuel",10,todo_height+75);
-    // ctx.fillText("• Better graphics",10,todo_height+90);
+    //to do list
+    const todo_height = 380;
+    ctx.fillStyle = "#507080";
+    ctx.font = "9px Verdana";
+    ctx.fillText("To do list:",10,todo_height);
+    ctx.fillText("• Horizontal and vertical velocity",10,todo_height+15);
+    ctx.fillText("• Fix fuel consumption",10,todo_height+30);
+    ctx.fillText("• Win/lose scenarios based on velocity",10,todo_height+45);
+    ctx.fillText("• Procedural ground generation",10,todo_height+60);
+    ctx.fillText("• Bar to indicate fuel",10,todo_height+75);
+    ctx.fillText("• Better graphics",10,todo_height+90);
 
 }
 function drawFloor()
