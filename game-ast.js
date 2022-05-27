@@ -37,6 +37,12 @@ const floor_height = 40;
 
 var fuel = MAX_FUEL;
 
+// @note Floor generation variables
+const floor_tile_size = 50;
+var floor_units = Math.floor(cvs.width/floor_tile_size);
+const rnd_floor_height = 100;
+var floor_heights = [];
+
 // set up the spaceship object
 var ship = {
     x: 0,
@@ -198,7 +204,7 @@ function radians_to_degrees(radians)
 {
   return radians/(Math.PI/180);
 }
-
+            
 function drawtexts() //@note Texts
 {    
     ctx.fillStyle = "lightsteelblue";
@@ -242,65 +248,69 @@ function drawtexts() //@note Texts
     ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
 
     //to do list
-    const todo_height = 380;
+    const todo_height = 430;
     ctx.fillStyle = "#507080";
     ctx.font = "9px Verdana";
     ctx.fillText("To do list:",10,todo_height);
-    ctx.fillText("• Procedural ground generation",10,todo_height+30);
-    ctx.fillText("• Bar to indicate fuel",10,todo_height+45);
-    ctx.fillText("• Better graphics",10,todo_height+60);
+    ctx.fillText("• Procedural ground generation",10,todo_height+15);
+    ctx.fillText("• Bar to indicate fuel",10,todo_height+30);
+    ctx.fillText("• Better graphics",10,todo_height+45);
 
 }
 
-const floor_tile_size = 50;
-var floor_units = Math.floor(cvs.width/floor_tile_size);
 //@note Floor generation
-function genFloor()
-{
-    
-        const floor_height2 = 200;
-        var floor_heights = [];
-    
-        // draw the floor
-        ctx.strokeStyle = "cyan";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo( 0,
-            cvs.height-Math.random()*floor_height2
-        );
-        for (i=1;i<=floor_units;i++)
-        {
-            if (floor_gen < 200)
-            {
-                floor_heights[i] = Math.random()*floor_height2;
-            }
-            ctx.lineTo(
-                0+i*floor_tile_size,
-                cvs.height-floor_heights[i]
-            );
-            ctx.stroke();   
-            floor_gen++;
-        }
-
-
-}
-//@note Floor drawing
 function drawFloor()
 {
-    // draw the floor
+    // procedural floor generation
     ctx.strokeStyle = "white";
     ctx.lineWidth = 1;
     ctx.beginPath();
-
-    //regular floor
     ctx.moveTo( 0,
-        cvs.height-floor_height
+        cvs.height-Math.random()*rnd_floor_height
     );
-    ctx.lineTo(
-        cvs.width,
-        cvs.height-floor_height
-    );
+
+    for (i=0;i<=floor_units;i++)
+    {
+        if (floor_gen == 0)
+        {
+            floor_heights[i] = Math.random()*rnd_floor_height;
+        }
+        if (i>0)
+        {
+            if ((floor_heights[i]-floor_heights[i-1]) < 5)  
+            {
+                ctx.fillStyle = "yellowgreen";
+                ctx.font = "20px Verdana";
+                ctx.fillText("Temos uma reta",220,350);
+            }
+            else  
+            {
+                ctx.fillStyle = "red";
+                ctx.font = "20px Verdana";
+                ctx.fillText("Não temos uma reta",200,375);
+            }
+
+        }
+        ctx.lineTo(
+            0+i*floor_tile_size,
+            cvs.height-floor_heights[i]
+        );
+        ctx.stroke();   
     
+    }
+    // // draw the floor
+    // ctx.strokeStyle = "white";
+    // ctx.lineWidth = 1;
+    // ctx.beginPath();
+
+    // //regular floor
+    // ctx.moveTo( 0,
+    //     cvs.height-floor_height
+    // );
+    // ctx.lineTo(
+    //     cvs.width,
+    //     cvs.height-floor_height
+    // );
     // irregular floor
     // ctx.moveTo( 0,
     //     cvs.height-10
@@ -333,26 +343,26 @@ function drawFloor()
     //     470,
     //     cvs.height-90
     // );
-    ctx.stroke();
+    // ctx.stroke();
 
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo( 
-        470,
-        cvs.height-floor_height
-    );
-    ctx.strokeStyle = "yellowgreen";
-    ctx.lineTo( 
-        580,
-        cvs.height-floor_height
-    );
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo( 
-        580,
-        cvs.height-floor_height
-    );
-    ctx.strokeStyle = "white";
+    // ctx.lineWidth = 3;
+    // ctx.beginPath();
+    // ctx.moveTo( 
+    //     470,
+    //     cvs.height-floor_height
+    // );
+    // ctx.strokeStyle = "yellowgreen";
+    // ctx.lineTo( 
+    //     580,
+    //     cvs.height-floor_height
+    // );
+    // ctx.stroke();
+    // ctx.beginPath();
+    // ctx.moveTo( 
+    //     580,
+    //     cvs.height-floor_height
+    // );
+    // ctx.strokeStyle = "white";
     // ctx.lineTo( 
     //     600,
     //     cvs.height-65
@@ -395,9 +405,11 @@ function draw()
         ctx.lineWidth = 2;
         ctx.strokeStyle="#ffffff";
         ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
-
-        ctx.drawImage(module, mX, mY);
         
+         drawFloor();
+         floor_gen=1;
+        
+
         drawtexts();
         if (keypress == 1 && fuel > 0)
         {
@@ -423,7 +435,6 @@ function draw()
             gravity = 0;
         }
 
-        genFloor();
 
         // thrust the ship
         if (ship.thrusting) {
