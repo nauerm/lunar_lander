@@ -22,6 +22,7 @@ var rot_rad;
 var turnspeed = 3;
 var SHIP_THRUST = 1; // acceleration of the ship in pixels per second per second
 var game_on = 0;
+var floor_gen = 0;
 
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
@@ -50,7 +51,7 @@ var ship = {
     }
 }
 
-//@note Keys
+//@note Key Events
 document.addEventListener("keydown", keys); 
 function keys(event)
 {  
@@ -60,11 +61,11 @@ function keys(event)
             key = event.keyCode;
             keypress = 1;
             ship.thrusting = true;
-            if (fuel>0)
-            {
+            //if (fuel>0)
+           // {
             //mY-=thrust;
-            fuel-=(SHIP_THRUST*0.05);
-            }   
+            //fuel-=(SHIP_THRUST*0.05);
+            //}   
             break;
         case 87: // w pressed
             key = event.keyCode;
@@ -234,26 +235,58 @@ function drawtexts() //@note Texts
     ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
     ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
     ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
-    ctx.fillText("Vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
+    ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
     ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
-    ctx.fillText("Vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
-    ctx.fillText("ship.y "+parseFloat(ship.x.toFixed(1)),10,debug_height+155);
-    
+    ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
+    ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
+    ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
+
     //to do list
     const todo_height = 380;
     ctx.fillStyle = "#507080";
     ctx.font = "9px Verdana";
     ctx.fillText("To do list:",10,todo_height);
-    ctx.fillText("• Fix fuel consumption",10,todo_height+15);
     ctx.fillText("• Procedural ground generation",10,todo_height+30);
     ctx.fillText("• Bar to indicate fuel",10,todo_height+45);
     ctx.fillText("• Better graphics",10,todo_height+60);
 
 }
-//@note Draw floor
-function drawFloor()
+
+const floor_tile_size = 50;
+var floor_units = Math.floor(cvs.width/floor_tile_size);
+//@note Floor generation
+function genFloor()
 {
     
+        const floor_height2 = 200;
+        var floor_heights = [];
+    
+        // draw the floor
+        ctx.strokeStyle = "cyan";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo( 0,
+            cvs.height-Math.random()*floor_height2
+        );
+        for (i=1;i<=floor_units;i++)
+        {
+            if (floor_gen < 200)
+            {
+                floor_heights[i] = Math.random()*floor_height2;
+            }
+            ctx.lineTo(
+                0+i*floor_tile_size,
+                cvs.height-floor_heights[i]
+            );
+            ctx.stroke();   
+            floor_gen++;
+        }
+
+
+}
+//@note Floor drawing
+function drawFloor()
+{
     // draw the floor
     ctx.strokeStyle = "white";
     ctx.lineWidth = 1;
@@ -338,9 +371,10 @@ var vel_y = 0;
 var previous_x = ship.x;
 var previous_y = ship.y;
 
-//@note Draw
+//@note Game drawing
 function draw()
 { 
+
     if (game_on == 0)
     {
         vel_x = ship.x-previous_x;
@@ -389,12 +423,14 @@ function draw()
             gravity = 0;
         }
 
+        genFloor();
+
         // thrust the ship
         if (ship.thrusting) {
             ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
             ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
 
-            // @note Draw thruster
+            // @note Thruster drawing
             if(SHIP_THRUST>0)
             {
                 ctx.fillStyle = "cyan";
@@ -419,7 +455,7 @@ function draw()
             }
         }
 
-        // @note Draw ship
+        // @note Ship drawing
         ctx.strokeStyle = "white";
         ctx.fillStyle = "black";
         ctx.lineWidth = 2;
@@ -483,6 +519,12 @@ function draw()
         ship.x += ship.thrust.x;
         ship.y += ship.thrust.y+vel;
         gravity += grav_inc;
+
+        // @note Fuel consumption
+        if (ship.thrusting == true)
+        {
+            fuel-=(SHIP_THRUST*0.01);
+        }
 
         //@note Win/lose detection
         if((altitude<= floor_height+ship.r*2+8) 
