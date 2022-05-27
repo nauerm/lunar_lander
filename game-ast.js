@@ -242,12 +242,10 @@ function drawtexts()
     ctx.fillStyle = "#507080";
     ctx.font = "9px Verdana";
     ctx.fillText("To do list:",10,todo_height);
-    ctx.fillText("• Horizontal and vertical velocity",10,todo_height+15);
-    ctx.fillText("• Fix fuel consumption",10,todo_height+30);
-    ctx.fillText("• Win/lose scenarios based on velocity",10,todo_height+45);
-    ctx.fillText("• Procedural ground generation",10,todo_height+60);
-    ctx.fillText("• Bar to indicate fuel",10,todo_height+75);
-    ctx.fillText("• Better graphics",10,todo_height+90);
+    ctx.fillText("• Fix fuel consumption",10,todo_height+15);
+    ctx.fillText("• Procedural ground generation",10,todo_height+30);
+    ctx.fillText("• Bar to indicate fuel",10,todo_height+45);
+    ctx.fillText("• Better graphics",10,todo_height+60);
 
 }
 function drawFloor()
