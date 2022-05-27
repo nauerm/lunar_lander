@@ -6,6 +6,8 @@ var module = new Image();
 var fire = new Image();
 var X = new Image();
 
+//@note Variables
+
 var mX = 427;
 var mY = 10;
 
@@ -48,8 +50,8 @@ var ship = {
     }
 }
 
-// on press key
-document.addEventListener("keydown", keys);
+//@note Keys
+document.addEventListener("keydown", keys); 
 function keys(event)
 {  
     switch(event.keyCode) 
@@ -162,7 +164,7 @@ function keys(event)
 }
 
 document.addEventListener("keyup", releaseKey);
-function releaseKey(event)
+function releaseKey(event) 
 {
     switch(event.keyCode) 
     {
@@ -196,7 +198,7 @@ function radians_to_degrees(radians)
   return radians/(Math.PI/180);
 }
 
-function drawtexts()
+function drawtexts() //@note Texts
 {    
     ctx.fillStyle = "lightsteelblue";
 
@@ -248,6 +250,7 @@ function drawtexts()
     ctx.fillText("• Better graphics",10,todo_height+60);
 
 }
+//@note Draw floor
 function drawFloor()
 {
     
@@ -335,6 +338,7 @@ var vel_y = 0;
 var previous_x = ship.x;
 var previous_y = ship.y;
 
+//@note Draw
 function draw()
 { 
     if (game_on == 0)
@@ -390,7 +394,7 @@ function draw()
             ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
             ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
 
-            // draw the thruster
+            // @note Draw thruster
             if(SHIP_THRUST>0)
             {
                 ctx.fillStyle = "cyan";
@@ -415,7 +419,7 @@ function draw()
             }
         }
 
-        // draw ship
+        // @note Draw ship
         ctx.strokeStyle = "white";
         ctx.fillStyle = "black";
         ctx.lineWidth = 2;
@@ -437,7 +441,7 @@ function draw()
         ctx.stroke();
 
 
-        // draw landing gear
+        // @note Draw landing gear
         var ac = 0.45;
         var size = SHIP_SIZE/2;
         ctx.lineWidth = 1.5;
@@ -466,20 +470,21 @@ function draw()
 
         drawFloor();
 
-        // rotate the ship
+        // @note Movement
+        //rotation
         if (rotation<180 || rotation >= 0)
         {
             ship.a += ship.rot;
         }
 
-        // action of gravity
+        //thrusting and gravity
         previous_x = ship.x;
         previous_y = ship.y;
         ship.x += ship.thrust.x;
         ship.y += ship.thrust.y+vel;
         gravity += grav_inc;
 
-        //Success detection
+        //@note Win/lose detection
         if((altitude<= floor_height+ship.r*2+8) 
         && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
         && (ship.x>=470 && ship.x<=580) 
