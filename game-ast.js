@@ -7,7 +7,6 @@ var fire = new Image();
 var X = new Image();
 
 //@note Variables
-
 var mX = 427;
 var mY = 10;
 
@@ -38,10 +37,12 @@ const floor_height = 40;
 var fuel = MAX_FUEL;
 
 // @note Floor generation variables
-const floor_tile_size = 50;
-var floor_units = Math.floor(cvs.width/floor_tile_size);
-const rnd_floor_height = 100;
+
+var floor_units = 14;
+const floor_tile_size = cvs.width/floor_units;
+const rnd_floor_height = 50;
 var floor_heights = [];
+min_floor_diff= 1.5;
 
 // set up the spaceship object
 var ship = {
@@ -232,7 +233,7 @@ function drawtexts() //@note Texts
     ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
     
     ctx.fillStyle = "#507080";
-    ctx.font = "9px Verdana";
+    ctx.font = "12px Verdana";
     const debug_height=190;
     ctx.fillText("Debug:",10,debug_height);
     ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
@@ -246,6 +247,45 @@ function drawtexts() //@note Texts
     ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
     ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
     ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
+    ctx.fillText("reto: "+parseFloat(reto.toFixed(1)),10,debug_height+190);
+
+    //altura do chão
+    // ctx.fillStyle = "white";
+    // ctx.font = "10px Verdana";
+    // ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),40,cvs.height-floor_heights[1]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),90,cvs.height-floor_heights[2]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),140,cvs.height-floor_heights[3]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),190,cvs.height-floor_heights[4]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),240,cvs.height-floor_heights[5]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),290,cvs.height-floor_heights[6]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),340,cvs.height-floor_heights[7]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),390,cvs.height-floor_heights[8]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[9].toFixed(2)),440,cvs.height-floor_heights[9]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[10].toFixed(2)),490,cvs.height-floor_heights[10]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[11].toFixed(2)),540,cvs.height-floor_heights[11]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[12].toFixed(2)),590,cvs.height-floor_heights[12]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[13].toFixed(2)),635,cvs.height-floor_heights[13]-15);
+    // ctx.fillText(""+parseFloat(floor_heights[14].toFixed(2)),675,cvs.height-floor_heights[14]-15);
+
+
+    // ctx.font = "15px Verdana";
+    // ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
+    // ctx.fillText("1",45,cvs.height-floor_heights[1]-25);
+    // ctx.fillText("2",95,cvs.height-floor_heights[2]-25);
+    // ctx.fillText("3",145,cvs.height-floor_heights[3]-25);
+    // ctx.fillText("4",195,cvs.height-floor_heights[4]-25);
+    // ctx.fillText("5",245,cvs.height-floor_heights[5]-25);
+    // ctx.fillText("6",295,cvs.height-floor_heights[6]-25);
+    // ctx.fillText("7",345,cvs.height-floor_heights[7]-25);
+    // ctx.fillText("8",395,cvs.height-floor_heights[8]-25);
+    // ctx.fillText("9",445,cvs.height-floor_heights[9]-25);
+    // ctx.fillText("10",495,cvs.height-floor_heights[10]-25);
+    // ctx.fillText("11",545,cvs.height-floor_heights[11]-25);
+    // ctx.fillText("12",595,cvs.height-floor_heights[12]-25);
+    // ctx.fillText("13",640,cvs.height-floor_heights[13]-25);
+    // ctx.fillText("14",680,cvs.height-floor_heights[14]-25);
+    
 
     //to do list
     const todo_height = 430;
@@ -258,6 +298,9 @@ function drawtexts() //@note Texts
 
 }
 
+var reto = 0;
+var aux = 0;
+var aux2 = 0;
 //@note Floor generation
 function drawFloor()
 {
@@ -265,39 +308,56 @@ function drawFloor()
     ctx.strokeStyle = "white";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo( 0,
+    ctx.moveTo( 
+        0,
         cvs.height-Math.random()*rnd_floor_height
     );
 
-    for (i=0;i<=floor_units;i++)
+    for (n=0;n<=floor_units;n++)
     {
         if (floor_gen == 0)
         {
-            floor_heights[i] = Math.random()*rnd_floor_height;
+            floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/12;
         }
-        if (i>0)
+        if (n>0)
         {
-            if ((floor_heights[i]-floor_heights[i-1]) < 5)  
+            if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff)   
+            {
+                reto = 1;
+                aux = n-1;
+                aux = n;
+                
+            }
+            else if (Math.abs(floor_heights[n]-floor_heights[n-1]) >= 5 && reto == 0)  
             {
                 ctx.fillStyle = "yellowgreen";
-                ctx.font = "20px Verdana";
-                ctx.fillText("Temos uma reta",220,350);
-            }
-            else  
-            {
-                ctx.fillStyle = "red";
-                ctx.font = "20px Verdana";
-                ctx.fillText("Não temos uma reta",200,375);
+                    ctx.font = "20px Verdana";
+                    ctx.fillText("Chão torto",cvs.width/2-40,cvs.height/2+90);
             }
 
         }
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "white";
         ctx.lineTo(
-            0+i*floor_tile_size,
-            cvs.height-floor_heights[i]
+            0+n*floor_tile_size,
+            cvs.height-floor_heights[n]
         );
-        ctx.stroke();   
-    
+        
     }
+    ctx.lineTo(
+        cvs.width,
+        cvs.height
+    );
+    ctx.lineTo(
+        0,
+        cvs.height
+    );
+    ctx.strokeStyle = "black";
+    ctx.fillStyle = "lightsteelblue";
+    ctx.closePath();
+    ctx.fill(); 
+    ctx.stroke(); 
+    floor_gen=1;  
     // // draw the floor
     // ctx.strokeStyle = "white";
     // ctx.lineWidth = 1;
@@ -406,9 +466,7 @@ function draw()
         ctx.strokeStyle="#ffffff";
         ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
         
-         drawFloor();
-         floor_gen=1;
-        
+        drawFloor();        
 
         drawtexts();
         if (keypress == 1 && fuel > 0)
@@ -606,6 +664,20 @@ function draw()
         gravity = 0;
         }
         else
+        
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo( 
+            (aux)*floor_tile_size,
+            cvs.height-floor_heights[aux]
+        );
+        ctx.lineTo(
+            (aux-1)*floor_tile_size,
+            cvs.height-floor_heights[aux-1]
+        );
+        ctx.stroke(); 
+
         requestAnimationFrame(draw);
     }
     else if(game_on == 1)
