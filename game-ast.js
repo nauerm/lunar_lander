@@ -26,7 +26,7 @@ var floor_gen = 0;
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 12; // ship height in pixels
+const SHIP_SIZE = 20; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 60; // turn speed in degrees per second
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
@@ -38,7 +38,7 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 14;
+var floor_units = 20;
 const floor_tile_size = cvs.width/floor_units;
 const rnd_floor_height = 50;
 var floor_heights = [];
@@ -213,8 +213,8 @@ function drawtexts() //@note Texts
     ctx.font = "15px Verdana";
     ctx.fillText("Land on the          landing pad",cvs.width/2-110,20);
     
-    ctx.fillStyle = "yellowgreen";
-    ctx.fillText("green",cvs.width/2-15,20);
+    ctx.fillStyle = "white";
+    ctx.fillText("white",cvs.width/2-15,20);
     ctx.fillStyle = "lightsteelblue";
     const controls_height=40;
     ctx.font = "12px Verdana";
