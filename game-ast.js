@@ -28,7 +28,7 @@ const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
 const SHIP_SIZE = 20; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
-const TURN_SPEED = 60; // turn speed in degrees per second
+const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
 const max_landing_speed = 2.5;
 const angle_lim = 0.15;
@@ -38,7 +38,7 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 20;
+var floor_units = 8;
 const floor_tile_size = cvs.width/floor_units;
 const rnd_floor_height = 50;
 var floor_heights = [];
@@ -87,29 +87,25 @@ function keys(event)
         case 37: // left pressed
             if (rotation < 180)
             {
-                rotation += 1*turnspeed;
-                ship.rot = TURN_SPEED / 180 * Math.PI / FPS;
+                ship.rot = TURN_SPEED / 180 * Math.PI;
             }
         break;
         case 65: // a pressed
             if (rotation < 180)
             {
-                rotation += 1*turnspeed;
-                ship.rot = TURN_SPEED / 180 * Math.PI / FPS;
+                ship.rot = TURN_SPEED / 180 * Math.PI;
             }
         break;
         case 39: // right pressed
             if(rotation > 0)
             { 
-                rotation -= 1*turnspeed;
-                ship.rot = -TURN_SPEED / 180 * Math.PI / FPS;
+                ship.rot = -TURN_SPEED / 180 * Math.PI;
             }
         break;
         case 68: // d pressed
             if(rotation > 0)
             { 
-                rotation -= 1*turnspeed;
-                ship.rot = -TURN_SPEED / 180 * Math.PI / FPS;
+                ship.rot = -TURN_SPEED / 180 * Math.PI;
             }
         break;
         case 32: // space pressed
@@ -210,20 +206,22 @@ function drawtexts() //@note Texts
 {    
     ctx.fillStyle = "lightsteelblue";
 
-    ctx.font = "15px Verdana";
-    ctx.fillText("Land on the          landing pad",cvs.width/2-110,20);
+    // ctx.font = 15+"px Verdana";
+    // ctx.fillText("Land on the          landing pad",cvs.width/2-110,20);
     
-    ctx.fillStyle = "white";
-    ctx.fillText("white",cvs.width/2-15,20);
+    // ctx.fillStyle = "white";
+    // ctx.fillText("white",cvs.width/2-15,20);
+
     ctx.fillStyle = "lightsteelblue";
     const controls_height=40;
-    ctx.font = "12px Verdana";
-    ctx.fillText("Controls:",cvs.width-190,controls_height+10);
-    ctx.fillText("Up/W: Activate thrusters",cvs.width-190,controls_height+30);
-    ctx.fillText("Shift: Increase power",cvs.width-190,controls_height+50);
-    ctx.fillText("Ctrl: Decrease power",cvs.width-190,controls_height+70);
-    ctx.fillText("Left/A and Right/D: Rotation",cvs.width-190,controls_height+90);
-    ctx.fillText("Space: Pause",cvs.width-190,controls_height+110);
+    ctx.font = (15+cvs.width/500)+"px Verdana";
+    var padding_from_right = 230;
+    ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
+    ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
+    ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
+    ctx.fillText("Ctrl: Decrease power",cvs.width-padding_from_right,controls_height+70);
+    ctx.fillText("Left/A and Right/D: Rotation",cvs.width-padding_from_right,controls_height+90);
+    ctx.fillText("Space: Pause",cvs.width-padding_from_right,controls_height+110);
     
     ctx.fillText("Fuel: "+parseFloat((fuel*100/MAX_FUEL).toFixed(1))+"%",10,controls_height+10);
     ctx.fillText("Altitude: "+parseFloat(altitude.toFixed(0)),10,controls_height+30);
@@ -233,7 +231,8 @@ function drawtexts() //@note Texts
     ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
     
     ctx.fillStyle = "#507080";
-    ctx.font = "12px Verdana";
+    ctx.font = (10+cvs.width/500)+"px Verdana";
+
     const debug_height=190;
     ctx.fillText("Debug:",10,debug_height);
     ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
@@ -247,7 +246,8 @@ function drawtexts() //@note Texts
     ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
     ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
     ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
-    ctx.fillText("reto: "+parseFloat(reto.toFixed(1)),10,debug_height+190);
+    ctx.fillText("Ship size "+parseFloat(SHIP_SIZE.toFixed(1)),10,debug_height+190);
+    ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+210);
 
     //altura do chão
     // ctx.fillStyle = "white";
@@ -288,13 +288,15 @@ function drawtexts() //@note Texts
     
 
     //to do list
-    const todo_height = 430;
+    const todo_height = cvs.height-300;
     ctx.fillStyle = "#507080";
-    ctx.font = "9px Verdana";
+    ctx.font = (12+cvs.width/500)+"px Verdana";
     ctx.fillText("To do list:",10,todo_height);
-    ctx.fillText("• Procedural ground generation",10,todo_height+15);
-    ctx.fillText("• Bar to indicate fuel",10,todo_height+30);
-    ctx.fillText("• Better graphics",10,todo_height+45);
+    ctx.fillText("• Fix ground generation",10,todo_height+20);
+    ctx.fillText("• Retry if there's not a flat area",30,todo_height+40);
+    ctx.fillText("• Implement collision",30,todo_height+60);
+    ctx.fillText("• Bar to indicate fuel",10,todo_height+80);
+    ctx.fillText("• Better graphics",10,todo_height+100);
 
 }
 
@@ -304,6 +306,13 @@ var aux2 = 0;
 //@note Floor generation
 function drawFloor()
 {
+    //min floor size
+    // if(floor_tile_size < SHIP_SIZE*2)
+    // {
+    //     floor_tile_size = SHIP_SIZE*2;
+    //     floor_units = cvs.width/floor_tile_size;
+    // }
+
     // procedural floor generation
     ctx.strokeStyle = "white";
     ctx.lineWidth = 1;
@@ -458,7 +467,6 @@ function draw()
         SHIP_THRUST = SHIP_THRUST_MAX;
         if (SHIP_THRUST<0)
         SHIP_THRUST = 0;
-        rot_rad = degrees_to_radians(rotation);
         
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, cvs.width, cvs.height);
