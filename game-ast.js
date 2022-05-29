@@ -22,6 +22,8 @@ var turnspeed = 3;
 var SHIP_THRUST = 1; // acceleration of the ship in pixels per second per second
 var game_on = 0;
 var floor_gen = 0;
+var segment = 0;
+var seg_int = 0;
 
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
@@ -246,45 +248,39 @@ function drawtexts() //@note Texts
     ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
     ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
     ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
-    ctx.fillText("Ship size "+parseFloat(SHIP_SIZE.toFixed(1)),10,debug_height+190);
+    ctx.fillText("flat = "+flat,10,debug_height+190);
     ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+210);
 
+    // collision detection
+    ctx.fillStyle = "yellowgreen";
+    ctx.font = "16px Verdana";
+    ctx.fillText("Over the segment: "+seg_int+"-"+(seg_int+1),cvs.width/2-100,200);
+    ctx.fillText("Floor height from "+parseFloat(floor_heights[seg_int].toFixed(2))+" to "+parseFloat(floor_heights[seg_int+1].toFixed(2)),cvs.width/2-140,230);
+
+
     //altura do chão
-    // ctx.fillStyle = "white";
-    // ctx.font = "10px Verdana";
-    // ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),40,cvs.height-floor_heights[1]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),90,cvs.height-floor_heights[2]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),140,cvs.height-floor_heights[3]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),190,cvs.height-floor_heights[4]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),240,cvs.height-floor_heights[5]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),290,cvs.height-floor_heights[6]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),340,cvs.height-floor_heights[7]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),390,cvs.height-floor_heights[8]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[9].toFixed(2)),440,cvs.height-floor_heights[9]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[10].toFixed(2)),490,cvs.height-floor_heights[10]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[11].toFixed(2)),540,cvs.height-floor_heights[11]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[12].toFixed(2)),590,cvs.height-floor_heights[12]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[13].toFixed(2)),635,cvs.height-floor_heights[13]-15);
-    // ctx.fillText(""+parseFloat(floor_heights[14].toFixed(2)),675,cvs.height-floor_heights[14]-15);
+    ctx.fillStyle = "white";
+    ctx.font = "10px Verdana";
+    ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
+    ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),1*floor_tile_size,cvs.height-floor_heights[1]-15);
+    ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),2*floor_tile_size,cvs.height-floor_heights[2]-15);
+    ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),3*floor_tile_size,cvs.height-floor_heights[3]-15);
+    ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),4*floor_tile_size,cvs.height-floor_heights[4]-15);
+    ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),5*floor_tile_size,cvs.height-floor_heights[5]-15);
+    ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),6*floor_tile_size,cvs.height-floor_heights[6]-15);
+    ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),7*floor_tile_size,cvs.height-floor_heights[7]-15);
+    ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),8*floor_tile_size-30,cvs.height-floor_heights[8]-15);
 
-
-    // ctx.font = "15px Verdana";
-    // ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
-    // ctx.fillText("1",45,cvs.height-floor_heights[1]-25);
-    // ctx.fillText("2",95,cvs.height-floor_heights[2]-25);
-    // ctx.fillText("3",145,cvs.height-floor_heights[3]-25);
-    // ctx.fillText("4",195,cvs.height-floor_heights[4]-25);
-    // ctx.fillText("5",245,cvs.height-floor_heights[5]-25);
-    // ctx.fillText("6",295,cvs.height-floor_heights[6]-25);
-    // ctx.fillText("7",345,cvs.height-floor_heights[7]-25);
-    // ctx.fillText("8",395,cvs.height-floor_heights[8]-25);
-    // ctx.fillText("9",445,cvs.height-floor_heights[9]-25);
-    // ctx.fillText("10",495,cvs.height-floor_heights[10]-25);
-    // ctx.fillText("11",545,cvs.height-floor_heights[11]-25);
-    // ctx.fillText("12",595,cvs.height-floor_heights[12]-25);
-    // ctx.fillText("13",640,cvs.height-floor_heights[13]-25);
-    // ctx.fillText("14",680,cvs.height-floor_heights[14]-25);
+    ctx.font = "15px Verdana";
+    ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
+    ctx.fillText("1",1*floor_tile_size,cvs.height-floor_heights[1]-25);
+    ctx.fillText("2",2*floor_tile_size,cvs.height-floor_heights[2]-25);
+    ctx.fillText("3",3*floor_tile_size,cvs.height-floor_heights[3]-25);
+    ctx.fillText("4",4*floor_tile_size,cvs.height-floor_heights[4]-25);
+    ctx.fillText("5",5*floor_tile_size,cvs.height-floor_heights[5]-25);
+    ctx.fillText("6",6*floor_tile_size,cvs.height-floor_heights[6]-25);
+    ctx.fillText("7",7*floor_tile_size,cvs.height-floor_heights[7]-25);
+    ctx.fillText("8",8*floor_tile_size-20,cvs.height-floor_heights[8]-25);
     
 
     //to do list
@@ -292,6 +288,7 @@ function drawtexts() //@note Texts
     ctx.fillStyle = "#507080";
     ctx.font = (12+cvs.width/500)+"px Verdana";
     ctx.fillText("To do list:",10,todo_height);
+    ctx.fillText("Fix rotation with arrow keys",90,todo_height);
     ctx.fillText("• Fix ground generation",10,todo_height+20);
     ctx.fillText("• Retry if there's not a flat area",30,todo_height+40);
     ctx.fillText("• Implement collision",30,todo_height+60);
@@ -300,73 +297,70 @@ function drawtexts() //@note Texts
 
 }
 
-var reto = 0;
+var flat = 0;
 var aux = 0;
 var aux2 = 0;
 //@note Floor generation
 function drawFloor()
 {
-    //min floor size
-    // if(floor_tile_size < SHIP_SIZE*2)
-    // {
-    //     floor_tile_size = SHIP_SIZE*2;
-    //     floor_units = cvs.width/floor_tile_size;
-    // }
-
-    // procedural floor generation
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo( 
-        0,
-        cvs.height-Math.random()*rnd_floor_height
-    );
-
-    for (n=0;n<=floor_units;n++)
-    {
-        if (floor_gen == 0)
-        {
-            floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/12;
-        }
-        if (n>0)
-        {
-            if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff)   
-            {
-                reto = 1;
-                aux = n-1;
-                aux = n;
-                
-            }
-            else if (Math.abs(floor_heights[n]-floor_heights[n-1]) >= 5 && reto == 0)  
-            {
-                ctx.fillStyle = "yellowgreen";
-                    ctx.font = "20px Verdana";
-                    ctx.fillText("Chão torto",cvs.width/2-40,cvs.height/2+90);
-            }
-
-        }
-        ctx.lineWidth = 1;
+        // procedural floor generation
         ctx.strokeStyle = "white";
-        ctx.lineTo(
-            0+n*floor_tile_size,
-            cvs.height-floor_heights[n]
+        ctx.beginPath();
+        ctx.moveTo( 
+            0,
+            cvs.height-Math.random()*rnd_floor_height
         );
-        
-    }
-    ctx.lineTo(
-        cvs.width,
-        cvs.height
-    );
-    ctx.lineTo(
-        0,
-        cvs.height
-    );
-    ctx.strokeStyle = "black";
-    ctx.fillStyle = "lightsteelblue";
-    ctx.closePath();
-    ctx.fill(); 
-    ctx.stroke(); 
-    floor_gen=1;  
+        for (n=0;n<=floor_units;n++)
+        {
+            if (floor_gen == 0)
+            {
+                floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/12;
+            }
+            if (n>0)
+            {
+                if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff)   
+                {
+                    flat += 1;
+                    aux = n-1;
+                    aux = n;
+                }
+                else if (Math.abs(floor_heights[n]-floor_heights[n-1]) >= 5 && flat == 0)  
+                {
+                    ctx.fillStyle = "yellowgreen";
+                        ctx.font = "20px Verdana";
+                        ctx.fillText("Not a flat area",cvs.width/2-60,cvs.height/2+90);
+                }
+
+            } 
+            // after generating entire floor there's no flat segment
+            if (n == floor_units && flat == 0)
+            {
+                n = 0;
+            }
+            else
+            {
+                ctx.lineTo(
+                    0+n*floor_tile_size,
+                    cvs.height-floor_heights[n]
+                );
+            }
+        }
+        ctx.lineTo(
+            cvs.width,
+            cvs.height
+        );
+        ctx.lineTo(
+            0,
+            cvs.height
+        );
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "lightsteelblue";
+        ctx.fillStyle = "lightsteelblue";
+        ctx.closePath();
+        ctx.fill(); 
+        ctx.stroke(); 
+        floor_gen = 1;  
+    
     // // draw the floor
     // ctx.strokeStyle = "white";
     // ctx.lineWidth = 1;
@@ -456,6 +450,10 @@ function draw()
 
     if (game_on == 0)
     {
+        //floor segment detection
+        segment = ship.x/floor_tile_size;
+        seg_int = Math.floor(ship.x/floor_tile_size);
+
         vel_x = ship.x-previous_x;
         vel_y = ship.y-previous_y;
         altitude = (cvs.height-ship.y)+ship.r;
