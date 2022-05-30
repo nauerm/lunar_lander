@@ -24,17 +24,18 @@ var game_on = 0;
 var floor_gen = 0;
 var segment = 0;
 var seg_int = 0;
+var floor_height = 40;
 
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 20; // ship height in pixels
+const SHIP_SIZE = 15; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
 const max_landing_speed = 2.5;
 const angle_lim = 0.15;
-const floor_height = 40;
+const debug = 0;
 
 var fuel = MAX_FUEL;
 
@@ -67,24 +68,20 @@ function keys(event)
     switch(event.keyCode) 
     {
         case 38: // up pressed
-            key = event.keyCode;
-            keypress = 1;
-            ship.thrusting = true;
-            //if (fuel>0)
-           // {
-            //mY-=thrust;
-            //fuel-=(SHIP_THRUST*0.05);
-            //}   
-            break;
-        case 87: // w pressed
-            key = event.keyCode;
-            keypress = 1;
-            ship.thrusting = true;
             if (fuel>0)
             {
-            //mY-=thrust;
-            fuel-=(SHIP_THRUST*0.05);
+                ship.thrusting = true;
             }   
+            else
+                ship.thrusting = false;
+            break;
+        case 87: // w pressed
+            if (fuel>0)
+            {
+                ship.thrusting = true;
+            }   
+            else
+                ship.thrusting = false;   
         break;
         case 37: // left pressed
             if (rotation < 180)
@@ -93,10 +90,7 @@ function keys(event)
             }
         break;
         case 65: // a pressed
-            if (rotation < 180)
-            {
-                ship.rot = TURN_SPEED / 180 * Math.PI;
-            }
+            ship.rot = TURN_SPEED / 180 * Math.PI;
         break;
         case 39: // right pressed
             if(rotation > 0)
@@ -105,10 +99,7 @@ function keys(event)
             }
         break;
         case 68: // d pressed
-            if(rotation > 0)
-            { 
-                ship.rot = -TURN_SPEED / 180 * Math.PI;
-            }
+            ship.rot = -TURN_SPEED / 180 * Math.PI;
         break;
         case 32: // space pressed
         switch(game_on)
@@ -127,19 +118,6 @@ function keys(event)
             break;
         }
         break;
-    }
-    // if key is UP, activate thrusters
-    if(event.keyCode == 38)
-    {
-        key = event.keyCode;
-        keypress = 1;
-        if (fuel>0)
-        {
-            ship.thrusting = true;
-            fuel-=(SHIP_THRUST*0.05);
-        }   
-        else
-        ship.thrusting = false;
     }
 
     // if key is SHIFT, increase thrusters value
@@ -217,7 +195,7 @@ function drawtexts() //@note Texts
     ctx.fillStyle = "lightsteelblue";
     const controls_height=40;
     ctx.font = (15+cvs.width/500)+"px Verdana";
-    var padding_from_right = 230;
+    var padding_from_right = 250;
     ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
     ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
     ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
@@ -232,68 +210,69 @@ function drawtexts() //@note Texts
     ctx.fillText("Thrusters: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,controls_height+90);
     ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
     
-    ctx.fillStyle = "#507080";
-    ctx.font = (10+cvs.width/500)+"px Verdana";
+    if (debug == 1)
+    {
+        ctx.fillStyle = "#507080";
+        ctx.font = (10+cvs.width/500)+"px Verdana";
+        const debug_height=170;
+        ctx.fillText("Debug:",10,debug_height);
+        ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
+        ctx.fillText("ship.y: "+parseFloat(ship.y.toFixed(1)),10,debug_height+35);
+        ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+50);
+        ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
+        ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
+        ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
+        ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
+        ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
+        ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
+        ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
+        ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
+        ctx.fillText("flat = "+flat,10,debug_height+190);
+        ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+210);
 
-    const debug_height=190;
-    ctx.fillText("Debug:",10,debug_height);
-    ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
-    ctx.fillText("ship.y: "+parseFloat(ship.y.toFixed(1)),10,debug_height+35);
-    ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+50);
-    ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
-    ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
-    ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
-    ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
-    ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
-    ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
-    ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
-    ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
-    ctx.fillText("flat = "+flat,10,debug_height+190);
-    ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+210);
+        // collision detection
+        ctx.fillStyle = "yellowgreen";
+        ctx.font = "16px Verdana";
+        ctx.fillText("Over the segment: "+seg_int+"-"+(seg_int+1),cvs.width/2-100,200);
+        ctx.fillText("Floor height from "+parseFloat(floor_heights[seg_int].toFixed(2))+" to "+parseFloat(floor_heights[seg_int+1].toFixed(2)),cvs.width/2-140,230);
 
-    // collision detection
-    ctx.fillStyle = "yellowgreen";
-    ctx.font = "16px Verdana";
-    ctx.fillText("Over the segment: "+seg_int+"-"+(seg_int+1),cvs.width/2-100,200);
-    ctx.fillText("Floor height from "+parseFloat(floor_heights[seg_int].toFixed(2))+" to "+parseFloat(floor_heights[seg_int+1].toFixed(2)),cvs.width/2-140,230);
+        //altura do chão
+        ctx.fillStyle = "white";
+        ctx.font = "10px Verdana";
+        ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
+        ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),1*floor_tile_size,cvs.height-floor_heights[1]-15);
+        ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),2*floor_tile_size,cvs.height-floor_heights[2]-15);
+        ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),3*floor_tile_size,cvs.height-floor_heights[3]-15);
+        ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),4*floor_tile_size,cvs.height-floor_heights[4]-15);
+        ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),5*floor_tile_size,cvs.height-floor_heights[5]-15);
+        ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),6*floor_tile_size,cvs.height-floor_heights[6]-15);
+        ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),7*floor_tile_size,cvs.height-floor_heights[7]-15);
+        ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),8*floor_tile_size-30,cvs.height-floor_heights[8]-15);
 
+        ctx.font = "15px Verdana";
+        ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
+        ctx.fillText("1",1*floor_tile_size,cvs.height-floor_heights[1]-25);
+        ctx.fillText("2",2*floor_tile_size,cvs.height-floor_heights[2]-25);
+        ctx.fillText("3",3*floor_tile_size,cvs.height-floor_heights[3]-25);
+        ctx.fillText("4",4*floor_tile_size,cvs.height-floor_heights[4]-25);
+        ctx.fillText("5",5*floor_tile_size,cvs.height-floor_heights[5]-25);
+        ctx.fillText("6",6*floor_tile_size,cvs.height-floor_heights[6]-25);
+        ctx.fillText("7",7*floor_tile_size,cvs.height-floor_heights[7]-25);
+        ctx.fillText("8",8*floor_tile_size-20,cvs.height-floor_heights[8]-25);
+        
 
-    //altura do chão
-    ctx.fillStyle = "white";
-    ctx.font = "10px Verdana";
-    ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
-    ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),1*floor_tile_size,cvs.height-floor_heights[1]-15);
-    ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),2*floor_tile_size,cvs.height-floor_heights[2]-15);
-    ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),3*floor_tile_size,cvs.height-floor_heights[3]-15);
-    ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),4*floor_tile_size,cvs.height-floor_heights[4]-15);
-    ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),5*floor_tile_size,cvs.height-floor_heights[5]-15);
-    ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),6*floor_tile_size,cvs.height-floor_heights[6]-15);
-    ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),7*floor_tile_size,cvs.height-floor_heights[7]-15);
-    ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),8*floor_tile_size-30,cvs.height-floor_heights[8]-15);
-
-    ctx.font = "15px Verdana";
-    ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
-    ctx.fillText("1",1*floor_tile_size,cvs.height-floor_heights[1]-25);
-    ctx.fillText("2",2*floor_tile_size,cvs.height-floor_heights[2]-25);
-    ctx.fillText("3",3*floor_tile_size,cvs.height-floor_heights[3]-25);
-    ctx.fillText("4",4*floor_tile_size,cvs.height-floor_heights[4]-25);
-    ctx.fillText("5",5*floor_tile_size,cvs.height-floor_heights[5]-25);
-    ctx.fillText("6",6*floor_tile_size,cvs.height-floor_heights[6]-25);
-    ctx.fillText("7",7*floor_tile_size,cvs.height-floor_heights[7]-25);
-    ctx.fillText("8",8*floor_tile_size-20,cvs.height-floor_heights[8]-25);
-    
-
-    //to do list
-    const todo_height = cvs.height-300;
-    ctx.fillStyle = "#507080";
-    ctx.font = (12+cvs.width/500)+"px Verdana";
-    ctx.fillText("To do list:",10,todo_height);
-    ctx.fillText("Fix rotation with arrow keys",90,todo_height);
-    ctx.fillText("• Fix ground generation",10,todo_height+20);
-    ctx.fillText("• Retry if there's not a flat area",30,todo_height+40);
-    ctx.fillText("• Implement collision",30,todo_height+60);
-    ctx.fillText("• Bar to indicate fuel",10,todo_height+80);
-    ctx.fillText("• Better graphics",10,todo_height+100);
+        //to do list
+        const todo_height = cvs.height-230;
+        ctx.fillStyle = "#507080";
+        ctx.font = (12+cvs.width/500)+"px Verdana";
+        ctx.fillText("To do list:",10,todo_height);
+        ctx.fillText("Fix rotation with arrow keys",90,todo_height);
+        ctx.fillText("• Fix ground generation",10,todo_height+20);
+        ctx.fillText("• Retry if there's not a flat area",30,todo_height+40);
+        ctx.fillText("• Implement collision",30,todo_height+60);
+        ctx.fillText("• Bar to indicate fuel",10,todo_height+80);
+        ctx.fillText("• Better graphics",10,todo_height+100);
+    }
 
 }
 
@@ -453,6 +432,8 @@ function draw()
         //floor segment detection
         segment = ship.x/floor_tile_size;
         seg_int = Math.floor(ship.x/floor_tile_size);
+        floor_height = (floor_heights[seg_int]+floor_heights[seg_int+1])/2;
+
 
         vel_x = ship.x-previous_x;
         vel_y = ship.y-previous_y;
@@ -475,16 +456,6 @@ function draw()
         drawFloor();        
 
         drawtexts();
-        if (keypress == 1 && fuel > 0)
-        {
-        ctx.drawImage(fire, mX, mY);
-        }
-        else if (keypress == 1 && fuel <= 0)
-        {
-        ctx.fillStyle = "lightgreen";
-        ctx.font = "30px Trebuchet MS";
-        ctx.fillText("Out of fuel!",370,90);
-        }
 
         // pauses when reaches bottom of the canvas
         if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
@@ -600,11 +571,18 @@ function draw()
         {
             fuel-=(SHIP_THRUST*0.01);
         }
+        if(fuel == 0)
+        {
+            ctx.fillStyle = "red";
+            ctx.font = "20px Trebuchet MS";
+            ctx.fillText("Out of fuel!",cvs.width/2-60,cvs.height/2-40);
+            ship.thrusting == false;
+        }
 
         //@note Win/lose detection
-        if((altitude<= floor_height+ship.r*2+8) 
+        if((altitude <= floor_height+ship.r*2+8) 
         && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
-        && (ship.x>=470 && ship.x<=580) 
+        && (ship.x>=seg_int*floor_tile_size && ship.x<=(seg_int+1)*floor_tile_size) 
         && (vel_y <=1.5) )
         {
             ship.a = 1.571;
@@ -619,8 +597,8 @@ function draw()
             gravity = 0;       
             game_on = 2; 
         }
-        else if(altitude<= floor_height+ship.r*2+8 &&
-            !(ship.x>=470 && ship.x<=580))
+        else if(altitude <= floor_height+ship.r*2+8 &&
+            !(ship.x>=seg_int*floor_tile_size && (seg_int+1)*floor_tile_size<=580))
         {
         ctx.fillStyle = "lightgreen";
         ctx.font = "20px Trebuchet MS";
