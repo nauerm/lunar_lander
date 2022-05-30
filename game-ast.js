@@ -42,9 +42,9 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 20;
+var floor_units = 50;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 100;
+const rnd_floor_height = 400;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -595,7 +595,7 @@ function draw()
         else if(altitude<= floor_height+ship.r*2+8 &&
             ship.a > 1.571+angle_lim)
         {
-        ctx.fillStyle = "lightgreen";
+        ctx.fillStyle = "crimson";
         ctx.font = "20px Trebuchet MS";
         ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
         ctx.fillText("Tilted module",cvs.width/2-75,cvs.height/2+30);
@@ -608,7 +608,7 @@ function draw()
         else if(altitude<= floor_height+ship.r*2+8 &&
             ship.a < 1.571-angle_lim)
         {
-        ctx.fillStyle = "lightgreen";
+        ctx.fillStyle = "crimson";
         ctx.font = "20px Trebuchet MS";
         ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
         ctx.fillText("Tilted module",cvs.width/2-75,cvs.height/2+30);
@@ -620,7 +620,7 @@ function draw()
         }
         else if (altitude<= floor_height+ship.r*2+8)
         {
-        ctx.fillStyle = "lightgreen";
+        ctx.fillStyle = "crimson";
         ctx.font = "20px Trebuchet MS";
         ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
         ctx.fillText("Too fast",cvs.width/2-50,cvs.height/2+30);
