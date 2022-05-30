@@ -25,11 +25,13 @@ var floor_gen = 0;
 var segment = 0;
 var seg_int = 0;
 var floor_height = 40;
+var fuel_on = 1;
+var score = 0;
 
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 15; // ship height in pixels
+const SHIP_SIZE = 12; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
@@ -41,9 +43,11 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 8;
+var floor_units = 20;
+// var floor_units = 20;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 50;
+const rnd_floor_height = 300;
+// const rnd_floor_height = 50;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -70,33 +74,35 @@ function keys(event)
         case 38: // up pressed
             if (fuel>0)
             {
+                if (fuel_on == 1)
+                {
                 ship.thrusting = true;
+                }
+                else
+                break;
             }   
             else
                 ship.thrusting = false;
             break;
         case 87: // w pressed
-            if (fuel>0)
+            if (fuel<=0)
             {
-                ship.thrusting = true;
+                ship.thrusting = false;   
+                return;
             }   
             else
-                ship.thrusting = false;   
+            {
+                ship.thrusting = true;
+            }
         break;
         case 37: // left pressed
-            if (rotation < 180)
-            {
-                ship.rot = TURN_SPEED / 180 * Math.PI;
-            }
+            ship.rot = TURN_SPEED / 180 * Math.PI;
         break;
         case 65: // a pressed
             ship.rot = TURN_SPEED / 180 * Math.PI;
         break;
         case 39: // right pressed
-            if(rotation > 0)
-            { 
-                ship.rot = -TURN_SPEED / 180 * Math.PI;
-            }
+            ship.rot = -TURN_SPEED / 180 * Math.PI;
         break;
         case 68: // d pressed
             ship.rot = -TURN_SPEED / 180 * Math.PI;
@@ -130,20 +136,6 @@ function keys(event)
     if(event.keyCode == 17 && SHIP_THRUST >=0)
     { 
         SHIP_THRUST -=0.1;
-    }
-    
-    // if key is left, add rotation to left
-    if(event.keyCode == 37 && rotation < 180)
-    { 
-        rotation += 1*turnspeed;
-        ship.rot = TURN_SPEED / 180 * Math.PI / FPS;
-    }
-    
-    // if key is right, add rotation to right
-    if(event.keyCode == 39 && rotation > 0)
-    { 
-        rotation -= 1*turnspeed;
-        ship.rot = -TURN_SPEED / 180 * Math.PI / FPS;
     }
 }
 
@@ -195,7 +187,7 @@ function drawtexts() //@note Texts
     ctx.fillStyle = "lightsteelblue";
     const controls_height=40;
     ctx.font = (15+cvs.width/500)+"px Verdana";
-    var padding_from_right = 250;
+    var padding_from_right = 270;
     ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
     ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
     ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
@@ -216,19 +208,16 @@ function drawtexts() //@note Texts
         ctx.font = (10+cvs.width/500)+"px Verdana";
         const debug_height=170;
         ctx.fillText("Debug:",10,debug_height);
-        ctx.fillText("gravity: "+parseFloat(gravity.toFixed(1)),10,debug_height+20);
-        ctx.fillText("ship.y: "+parseFloat(ship.y.toFixed(1)),10,debug_height+35);
-        ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+50);
-        ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+65);
-        ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+80);
-        ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+95);
-        ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+110);
-        ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+125);
-        ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+140);
-        ctx.fillText("floor gen: "+parseFloat(floor_gen.toFixed(1)),10,debug_height+155);
-        ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+170);
-        ctx.fillText("flat = "+flat,10,debug_height+190);
-        ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+210);
+        ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+15);
+        ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+30);
+        ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+45);
+        ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+60);
+        ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+75);
+        ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+90);
+        ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+105);
+        ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+120);
+        ctx.fillText("flat = "+flat,10,debug_height+135);
+        ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+150);
 
         // collision detection
         ctx.fillStyle = "yellowgreen";
@@ -236,7 +225,17 @@ function drawtexts() //@note Texts
         ctx.fillText("Over the segment: "+seg_int+"-"+(seg_int+1),cvs.width/2-100,200);
         ctx.fillText("Floor height from "+parseFloat(floor_heights[seg_int].toFixed(2))+" to "+parseFloat(floor_heights[seg_int+1].toFixed(2)),cvs.width/2-140,230);
 
-        //altura do chão
+        //to do list
+        const todo_height = cvs.height-240;
+        ctx.fillStyle = "#507080";
+        ctx.font = (10+cvs.width/500)+"px Verdana";
+        ctx.fillText("To do list:",10,todo_height);
+        ctx.fillText("• Stop thrusting even if key is pressed when fuel is depleted",10,todo_height+20);
+        ctx.fillText("• Implement collision with the floor",10,todo_height+40);
+        ctx.fillText("• Bar to indicate fuel",10,todo_height+60);
+        ctx.fillText("• Better graphics",10,todo_height+80);
+
+        //floor heights and labels
         ctx.fillStyle = "white";
         ctx.font = "10px Verdana";
         ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
@@ -260,18 +259,6 @@ function drawtexts() //@note Texts
         ctx.fillText("7",7*floor_tile_size,cvs.height-floor_heights[7]-25);
         ctx.fillText("8",8*floor_tile_size-20,cvs.height-floor_heights[8]-25);
         
-
-        //to do list
-        const todo_height = cvs.height-230;
-        ctx.fillStyle = "#507080";
-        ctx.font = (12+cvs.width/500)+"px Verdana";
-        ctx.fillText("To do list:",10,todo_height);
-        ctx.fillText("Fix rotation with arrow keys",90,todo_height);
-        ctx.fillText("• Fix ground generation",10,todo_height+20);
-        ctx.fillText("• Retry if there's not a flat area",30,todo_height+40);
-        ctx.fillText("• Implement collision",30,todo_height+60);
-        ctx.fillText("• Bar to indicate fuel",10,todo_height+80);
-        ctx.fillText("• Better graphics",10,todo_height+100);
     }
 
 }
@@ -297,7 +284,7 @@ function drawFloor()
             }
             if (n>0)
             {
-                if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff)   
+                if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff && flat<floor_units)    
                 {
                     flat += 1;
                     aux = n-1;
@@ -550,8 +537,6 @@ function draw()
         );
         ctx.stroke();
 
-        drawFloor();
-
         // @note Movement
         //rotation
         if (rotation<180 || rotation >= 0)
@@ -573,6 +558,7 @@ function draw()
         }
         if(fuel == 0)
         {
+            fuel_on = 0;
             ctx.fillStyle = "red";
             ctx.font = "20px Trebuchet MS";
             ctx.fillText("Out of fuel!",cvs.width/2-60,cvs.height/2-40);
@@ -583,7 +569,7 @@ function draw()
         if((altitude <= floor_height+ship.r*2+8) 
         && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
         && (ship.x>=seg_int*floor_tile_size && ship.x<=(seg_int+1)*floor_tile_size) 
-        && (vel_y <=1.5) )
+        && (vel_y <= 1.2))
         {
             ship.a = 1.571;
             ship.thrust = 0;
