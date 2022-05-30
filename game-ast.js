@@ -26,12 +26,11 @@ var segment = 0;
 var seg_int = 0;
 var floor_height = 40;
 var fuel_on = 1;
-var score = 0;
 
 const MAX_FUEL = 100;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 12; // ship height in pixels
+const SHIP_SIZE = 10; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
@@ -44,10 +43,8 @@ var fuel = MAX_FUEL;
 // @note Floor generation variables
 
 var floor_units = 20;
-// var floor_units = 20;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 300;
-// const rnd_floor_height = 50;
+const rnd_floor_height = 100;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -280,7 +277,7 @@ function drawFloor()
         {
             if (floor_gen == 0)
             {
-                floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/12;
+                floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/14;
             }
             if (n>0)
             {
