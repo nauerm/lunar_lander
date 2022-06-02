@@ -409,6 +409,10 @@ var vel_x = 0;
 var vel_y = 0;
 var previous_x = ship.x;
 var previous_y = ship.y;
+var star_size = 1;
+var stars = Math.floor(Math.random() * (150 - 1 + 1) ) + 50;
+var star_x = Array.from({length: stars}, () => Math.floor(Math.random()*cvs.width));
+var star_y = Array.from({length: stars}, () => Math.floor(Math.random()*cvs.height));
 
 //@note Game drawing
 function draw()
@@ -440,6 +444,35 @@ function draw()
         ctx.strokeStyle="#ffffff";
         ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
         
+        // @note Draw stars
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 0.5;
+        for (i = 0; i<stars; i++)
+        {
+        ctx.beginPath();
+        ctx.moveTo(
+            star_x[i],
+            star_y[i]
+        );
+        ctx.lineTo(
+            star_x[i]+star_size,
+            star_y[i]-star_size
+        );
+        ctx.lineTo(
+            star_x[i]+2*star_size,
+            star_y[i]
+        );
+        
+        ctx.lineTo(
+            star_x[i]+star_size,
+            star_y[i]+star_size
+        );
+        ctx.fill();
+        ctx.closePath();
+        ctx.stroke();
+        }
+
         //@note Draw fuel bar
         //background
         ctx.strokeStyle = "white";
