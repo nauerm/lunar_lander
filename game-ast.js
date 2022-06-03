@@ -27,7 +27,7 @@ var seg_int = 0;
 var floor_height = 40;
 var fuel_on = 1;
 
-const MAX_FUEL = 20;
+const MAX_FUEL = 15;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
 const SHIP_SIZE = 10; // ship height in pixels
@@ -36,19 +36,20 @@ const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
 const max_landing_speed = 2.5;
 const angle_lim = 0.15;
-const debug = 0;
-const fuel_bar_length = 100;
+const fuel_bar_length = cvs.width-420;
 const fuel_bar_height = 10;
 const fuel_bar_start_x = 130;
 const fuel_bar_start_y = 38;
+const padding_from_right = 270;
+const debug = 0;
 
 var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 20;
+var floor_units = 40;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 50;
+const rnd_floor_height = 200;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -187,7 +188,6 @@ function drawtexts() //@note Texts
     ctx.fillStyle = "lightsteelblue";
     const controls_height=40;
     ctx.font = (15+cvs.width/500)+"px Verdana";
-    var padding_from_right = 270;
     ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
     ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
     ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
@@ -233,31 +233,6 @@ function drawtexts() //@note Texts
         ctx.fillText("• Stop thrusting even if key is pressed when fuel is depleted",10,todo_height+20);
         ctx.fillText("• Implement collision with the floor",10,todo_height+40);
         ctx.fillText("• Bar to indicate fuel",10,todo_height+60);
-        ctx.fillText("• Better graphics",10,todo_height+80);
-
-        //floor heights and labels
-        ctx.fillStyle = "white";
-        ctx.font = "10px Verdana";
-        ctx.fillText(""+parseFloat(floor_heights[0].toFixed(2)),5,cvs.height-floor_heights[0]-15);
-        ctx.fillText(""+parseFloat(floor_heights[1].toFixed(2)),1*floor_tile_size,cvs.height-floor_heights[1]-15);
-        ctx.fillText(""+parseFloat(floor_heights[2].toFixed(2)),2*floor_tile_size,cvs.height-floor_heights[2]-15);
-        ctx.fillText(""+parseFloat(floor_heights[3].toFixed(2)),3*floor_tile_size,cvs.height-floor_heights[3]-15);
-        ctx.fillText(""+parseFloat(floor_heights[4].toFixed(2)),4*floor_tile_size,cvs.height-floor_heights[4]-15);
-        ctx.fillText(""+parseFloat(floor_heights[5].toFixed(2)),5*floor_tile_size,cvs.height-floor_heights[5]-15);
-        ctx.fillText(""+parseFloat(floor_heights[6].toFixed(2)),6*floor_tile_size,cvs.height-floor_heights[6]-15);
-        ctx.fillText(""+parseFloat(floor_heights[7].toFixed(2)),7*floor_tile_size,cvs.height-floor_heights[7]-15);
-        ctx.fillText(""+parseFloat(floor_heights[8].toFixed(2)),8*floor_tile_size-30,cvs.height-floor_heights[8]-15);
-
-        ctx.font = "15px Verdana";
-        ctx.fillText("0",10,cvs.height-floor_heights[0]-25);
-        ctx.fillText("1",1*floor_tile_size,cvs.height-floor_heights[1]-25);
-        ctx.fillText("2",2*floor_tile_size,cvs.height-floor_heights[2]-25);
-        ctx.fillText("3",3*floor_tile_size,cvs.height-floor_heights[3]-25);
-        ctx.fillText("4",4*floor_tile_size,cvs.height-floor_heights[4]-25);
-        ctx.fillText("5",5*floor_tile_size,cvs.height-floor_heights[5]-25);
-        ctx.fillText("6",6*floor_tile_size,cvs.height-floor_heights[6]-25);
-        ctx.fillText("7",7*floor_tile_size,cvs.height-floor_heights[7]-25);
-        ctx.fillText("8",8*floor_tile_size-20,cvs.height-floor_heights[8]-25);
         
     }
 
@@ -475,7 +450,7 @@ function draw()
 
         //@note Draw fuel bar
         //background
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = "cyan";
         ctx.fillStyle = "black";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -500,7 +475,7 @@ function draw()
         ctx.stroke();
 
         // fuel
-        ctx.fillStyle = "lightsteelblue";
+        ctx.fillStyle = "springgreen";
         ctx.lineWidth = 0;
         ctx.beginPath();
         ctx.moveTo( // top left
@@ -558,8 +533,8 @@ function draw()
                     ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))
                 );
                 ctx.lineTo( // rear centre (behind the ship)
-                    ship.x - 0.8*(ship.r) * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)),
-                    ship.y + 0.8*(ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a))
+                    ship.x - 0.8*(ship.r) * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)) + 1*Math.random(),
+                    ship.y + 0.8*(ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a)) + 2*Math.random()
                 );
                 ctx.lineTo( // rear right
                     ship.x -ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
@@ -743,4 +718,199 @@ function draw()
     }
 }
 
-draw();
+
+
+//@note Static drawing
+function draw_static()
+{           
+    const SHIP_SIZE_2 = 15;
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle="#ffffff";
+    ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
+    
+    // @note Static draw stars
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 0.5;
+    for (i = 0; i<stars; i++)
+    {
+    ctx.beginPath();
+    ctx.moveTo(
+        star_x[i],
+        star_y[i]
+    );
+    ctx.lineTo(
+        star_x[i]+star_size,
+        star_y[i]-star_size
+    );
+    ctx.lineTo(
+        star_x[i]+2*star_size,
+        star_y[i]
+    );
+    
+    ctx.lineTo(
+        star_x[i]+star_size,
+        star_y[i]+star_size
+    );
+    ctx.fill();
+    ctx.closePath();
+    ctx.stroke();
+    }
+
+    // // @note Static floor drawing
+    var segment_size = 200;
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo( 
+        0,
+        cvs.height
+    );
+    ctx.lineTo(
+        0,
+        cvs.height-90
+    );
+    ctx.lineTo(
+        segment_size,
+        cvs.height-75
+    );
+    ctx.lineTo(
+        2*segment_size,
+        cvs.height-110
+    );
+    ctx.lineTo(
+        3*segment_size,
+        cvs.height-105
+    );
+    ctx.lineTo(
+        4*segment_size,
+        cvs.height-65
+    );
+    ctx.lineTo(
+        5*segment_size,
+        cvs.height-100
+    );
+    ctx.lineTo(
+        6*segment_size,
+        cvs.height-120
+    );
+    ctx.lineTo(
+        7*segment_size,
+        cvs.height-70
+    );
+    ctx.lineTo(
+        8*segment_size,
+        cvs.height
+    );
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "lightsteelblue";
+    ctx.fillStyle = "lightsteelblue";
+    ctx.closePath();
+    ctx.fill(); 
+    ctx.stroke(); 
+
+    var static_ship = {
+        x: cvs.width/2,
+        y: 200,
+        r: SHIP_SIZE_2 / 2,
+        a: 2,
+        rot: 0.002,
+        thrusting: false,
+        thrust: {
+            x: 2,
+            y: -0.8
+        }
+    }
+
+    // @note Static ship drawing
+    ctx.strokeStyle = "white";
+    ctx.fillStyle = "black";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo( // nose of the ship
+        static_ship.x + 4 / 3 * static_ship.r * Math.cos(static_ship.a),
+        static_ship.y - 5 / 3 * static_ship.r * Math.sin(static_ship.a)
+    );
+    ctx.lineTo( // rear left
+        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + Math.sin(static_ship.a)),
+        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - Math.cos(static_ship.a))
+    );
+    ctx.lineTo( // rear right
+        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) - Math.sin(static_ship.a)),
+        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) + Math.cos(static_ship.a))
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // @note Static draw thrusters
+    ctx.fillStyle = "cyan";
+    ctx.strokeStyle = "mediumspringgreen";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo( // rear left
+        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + 0.5 * Math.sin(static_ship.a)),
+        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - 0.5 * Math.cos(static_ship.a))
+    );
+    ctx.lineTo( // rear centre (behind the ship)
+        static_ship.x - 0.8*(static_ship.r) * 5 / 3 * Math.cos(static_ship.a) - (15*Math.cos(static_ship.a)),
+        static_ship.y + 0.8*(static_ship.r) * 5 / 3 * Math.sin(static_ship.a) + (15*Math.sin(static_ship.a))
+    );
+    ctx.lineTo( // rear right
+        static_ship.x -static_ship.r * (2 / 3 * Math.cos(static_ship.a) - 0.5 * Math.sin(static_ship.a)),
+        static_ship.y +static_ship.r * (2 / 3 * Math.sin(static_ship.a) + 0.5 * Math.cos(static_ship.a))
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // @note Static draw landing gear
+    var ac = 0.45;
+    var size = SHIP_SIZE_2/2;
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo( // start left
+        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + Math.sin(static_ship.a)),
+        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - Math.cos(static_ship.a))
+    );
+    ctx.lineTo( // end left
+        
+        static_ship.x - (static_ship.r+size) * (2 / 3 * Math.cos(static_ship.a+ac) + Math.sin(static_ship.a+ac)),
+        static_ship.y + (static_ship.r+size) * (2 / 3 * Math.sin(static_ship.a+ac) - Math.cos(static_ship.a+ac))
+    );
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo( // start right
+        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) - Math.sin(static_ship.a)),
+        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) + Math.cos(static_ship.a))
+    );
+    ctx.lineTo( // end right
+        static_ship.x - (static_ship.r+size) * (2 / 3 * Math.cos(static_ship.a-ac) - Math.sin(static_ship.a-ac)),
+        static_ship.y + (static_ship.r+size) * (2 / 3 * Math.sin(static_ship.a-ac) + Math.cos(static_ship.a-ac))
+    );
+    ctx.stroke();
+
+
+    ctx.fillStyle = "springgreen";
+    ctx.font = "50px Courier";
+    ctx.fillText("Lunar Lander",cvs.width/2-160,cvs.height/2);
+
+    // // @note draw button
+    // ctx.fillStyle = "springgreen";
+    // ctx.fillRect(cvs.width/2-90, cvs.height/2+50, 200, 40);
+    
+    // text
+    ctx.fillStyle = "springgreen";
+    ctx.font = "20px Courier";
+    ctx.fillText("Click to begin",cvs.width/2-73,cvs.height/2+75);
+
+
+    //@note ending
+    document.addEventListener("click", draw);
+
+}
+
+draw_static();
