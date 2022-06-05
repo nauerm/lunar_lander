@@ -42,6 +42,19 @@ const fuel_bar_start_x = 130;
 const fuel_bar_start_y = 38;
 const padding_from_right = 270;
 const debug = 0;
+// set up the spaceship object
+const ship_initial = {
+    x: 0,
+    y: SHIP_SIZE+20,
+    r: SHIP_SIZE / 2,
+    a: 3,
+    rot: 0.002,
+    thrusting: false,
+    thrust: {
+        x: 2,
+        y: -0.8
+    }
+}
 
 var fuel = MAX_FUEL;
 
@@ -54,18 +67,7 @@ var floor_heights = [];
 min_floor_diff= 1.5;
 
 // set up the spaceship object
-var ship = {
-    x: 0,
-    y: SHIP_SIZE+20,
-    r: SHIP_SIZE / 2,
-    a: 3,
-    rot: 0.002,
-    thrusting: false,
-    thrust: {
-        x: 2,
-        y: -0.8
-    }
-}
+var ship = ship_initial;
 
 //@note Key Events
 document.addEventListener("keydown", keys); 
@@ -120,6 +122,8 @@ function keys(event)
                 draw();
             break;
             case 2:
+                // ship = ship_initial;
+                // fuel = MAX_FUEL;
                 location.reload();
                 game_on = 0; // unpause the game            
                 draw();
@@ -216,8 +220,8 @@ function drawtexts() //@note Texts
         ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+90);
         ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+105);
         ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+120);
-        ctx.fillText("flat = "+flat,10,debug_height+135);
-        ctx.fillText("floor size "+parseFloat(floor_tile_size.toFixed(1)),10,debug_height+150);
+        ctx.fillText("game_on: "+parseFloat(game_on.toFixed(1)),10,debug_height+150);
+        
 
         // collision detection
         ctx.fillStyle = "yellowgreen";
@@ -502,7 +506,7 @@ function draw()
 
         drawtexts();
 
-        // pauses when reaches bottom of the canvas
+        // pauses when reaches edges of the canvas
         if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
         {
             ctx.fillStyle = "lightgreen";
@@ -793,15 +797,23 @@ function draw_static()
     );
     ctx.lineTo(
         6*segment_size,
-        cvs.height-120
+        cvs.height-110
     );
     ctx.lineTo(
         7*segment_size,
-        cvs.height-70
+        cvs.height-80
     );
     ctx.lineTo(
         8*segment_size,
-        cvs.height
+        cvs.height-50   
+    );
+    ctx.lineTo(
+        10*segment_size,
+        cvs.height-60   
+    );
+    ctx.lineTo(
+        10*segment_size,
+        cvs.height   
     );
     ctx.lineWidth = 2;
     ctx.strokeStyle = "lightsteelblue";
@@ -913,4 +925,12 @@ function draw_static()
 
 }
 
-draw_static();
+// if (game_on == 3)
+// {
+//     draw_static();
+//     game_on = 0;
+// }
+// else
+// {
+    draw();
+// }
