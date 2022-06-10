@@ -573,6 +573,12 @@ function draw()
         ctx.fill();
         ctx.stroke();
 
+        // //@note Draw top of module
+        // ctx.beginPath();
+        // ctx.arc(ship.x, ship.y-SHIP_SIZE/2, SHIP_SIZE/2.5, 0.7*Math.PI, 2.3 * Math.PI);
+        // ctx.fill();
+        // ctx.stroke();
+
         // @note Draw landing gear
         var ac = 0.45;
         var size = SHIP_SIZE/2;
