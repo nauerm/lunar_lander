@@ -60,9 +60,9 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 40;
+var floor_units = 10;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 200;
+const rnd_floor_height = 20;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -550,15 +550,13 @@ function draw()
             }
         }
 
-        
-
         // @note Ship drawing
         ctx.strokeStyle = "white";
         ctx.fillStyle = "black";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo( // nose of the ship
-            ship.x + 4 / 3 * ship.r * Math.cos(ship.a),
+            ship.x + 5 / 3 * ship.r * Math.cos(ship.a),
             ship.y - 5 / 3 * ship.r * Math.sin(ship.a)
         );
         ctx.lineTo( // rear left
@@ -573,13 +571,109 @@ function draw()
         ctx.fill();
         ctx.stroke();
 
-        // //@note Draw top of module
+        // @note Draw rectangular parts of module
+        // var ret_start = 0.5*SHIP_SIZE;
+        // var ret_end = 1*SHIP_SIZE;
+        // ctx.strokeStyle = "white";
+        // ctx.fillStyle = "blue";
+        // ctx.lineWidth = 1.5;
         // ctx.beginPath();
-        // ctx.arc(ship.x, ship.y-SHIP_SIZE/2, SHIP_SIZE/2.5, 0.7*Math.PI, 2.3 * Math.PI);
+        // ctx.moveTo( // top left
+        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y - ret_end+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // top right
+        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y-ret_end + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear right
+        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y-ret_start + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear left
+        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y-ret_start+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.closePath();
         // ctx.fill();
         // ctx.stroke();
 
+        // ctx.beginPath();
+        // ctx.moveTo( // top left
+        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y - ret_end+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // top right
+        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y - ret_end + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear right
+        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y - ret_start + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear left
+        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y-ret_start+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.closePath();
+        // ctx.fill();
+        // ctx.stroke();
+
+        //@note Draw top of module
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.arc(ship.x + 3.5 / 3 * ship.r * Math.cos(ship.a), ship.y - 3.5 / 3 * ship.r * Math.sin(ship.a), SHIP_SIZE/2, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        // @note remove the line between module and top
+        const tam = 5;
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "black";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo( // nose of the ship
+            ship.x + 5 / 3 * tam* Math.cos(ship.a),
+            ship.y - 5 / 3 * tam * Math.sin(ship.a)
+        );
+        ctx.lineTo( // rear left
+            ship.x - tam * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+            ship.y + tam* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        );
+        ctx.lineTo( // rear right
+            ship.x - tam * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+            ship.y + tam * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        );
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // @note party hat
+        // const tam2 = 3;
+        // ctx.strokeStyle = "red";
+        // ctx.fillStyle = "red";
+        // ctx.lineWidth = 1.5;
+        // ctx.translate(0,-(SHIP_SIZE+3));
+        // ctx.beginPath();
+        // ctx.moveTo( // nose of the ship
+        //     ship.x + 4 / 3 * tam2* Math.cos(ship.a),
+        //     ship.y - 5 / 3 * tam2 * Math.sin(ship.a)
+        // );
+        // ctx.lineTo( // rear left
+        //     ship.x - tam2 * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y + tam2* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear right
+        //     ship.x - tam2 * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y + tam2 * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.closePath();
+        // ctx.fill();
+        // ctx.stroke();w
+        // ctx.translate(0,(SHIP_SIZE+3));
+
         // @note Draw landing gear
+        ctx.strokeStyle = "white";
         var ac = 0.45;
         var size = SHIP_SIZE/2;
         ctx.lineWidth = 1.5;
