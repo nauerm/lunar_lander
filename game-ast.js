@@ -30,7 +30,7 @@ var fuel_on = 1;
 const MAX_FUEL = 15;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 10; // ship height in pixels
+const SHIP_SIZE = 40; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
@@ -44,15 +44,15 @@ const padding_from_right = 270;
 const debug = 0;
 // set up the spaceship object
 const ship_initial = {
-    x: 0,
-    y: SHIP_SIZE+20,
+    x: 260,
+    y: 250,
     r: SHIP_SIZE / 2,
-    a: 3,
-    rot: 0.002,
+    a: 1.57,
+    rot: 0,
     thrusting: false,
     thrust: {
-        x: 2,
-        y: -0.8
+        x: 0,
+        y: 0
     }
 }
 
@@ -553,19 +553,21 @@ function draw()
         // @note Ship drawing
         ctx.strokeStyle = "white";
         ctx.fillStyle = "black";
+        var thrustertop = SHIP_SIZE/5;
+        var thrustersize = SHIP_SIZE/2;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo( // nose of the ship
-            ship.x + 5 / 3 * ship.r * Math.cos(ship.a),
-            ship.y - 5 / 3 * ship.r * Math.sin(ship.a)
+            ship.x + thrustertop * Math.cos(ship.a),
+            ship.y - thrustertop * Math.sin(ship.a)
         );
         ctx.lineTo( // rear left
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+            ship.x + (thrustersize) * (Math.cos(ship.a+1.57)),
+            ship.y + (thrustersize) * (Math.sin(ship.a))
         );
         ctx.lineTo( // rear right
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+            ship.x - (thrustersize) * (Math.cos(ship.a+1.57)),
+            ship.y + (thrustersize) * (Math.sin(ship.a))
         );
         ctx.closePath();
         ctx.fill();
@@ -620,33 +622,32 @@ function draw()
         // ctx.stroke();
 
         //@note Draw top of module
+        var circlesize = SHIP_SIZE/2.5;
+        var circlepos = SHIP_SIZE/3;
         ctx.beginPath();
         ctx.fillStyle = "black";
-        ctx.arc(ship.x + 3.5 / 3 * ship.r * Math.cos(ship.a), ship.y - 3.5 / 3 * ship.r * Math.sin(ship.a), SHIP_SIZE/2, 0, 2 * Math.PI);
+        ctx.arc(ship.x + circlepos * Math.cos(ship.a), ship.y - circlepos * Math.sin(ship.a), circlesize, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
 
         // @note remove the line between module and top
-        const tam = 5;
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "black";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo( // nose of the ship
-            ship.x + 5 / 3 * tam* Math.cos(ship.a),
-            ship.y - 5 / 3 * tam * Math.sin(ship.a)
-        );
-        ctx.lineTo( // rear left
-            ship.x - tam * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + tam* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        );
-        ctx.lineTo( // rear right
-            ship.x - tam * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + tam * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        );
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        // const tam = SHIP_SIZE/4;
+        // ctx.fillStyle = "black";
+        // ctx.beginPath();
+        // ctx.moveTo( // nose of the ship
+        //     ship.x + 5 / 3 * tam* Math.cos(ship.a),
+        //     ship.y - 5 / 3 * tam * Math.sin(ship.a)
+        // );
+        // ctx.lineTo( // rear left
+        //     ship.x - tam * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+        //     ship.y + tam* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+        // );
+        // ctx.lineTo( // rear right
+        //     ship.x - tam * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+        //     ship.y + tam * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+        // );
+        // ctx.closePath();
+        // ctx.fill();
 
         // @note party hat
         // const tam2 = 3;
@@ -676,11 +677,12 @@ function draw()
         ctx.strokeStyle = "white";
         var ac = 0.45;
         var size = SHIP_SIZE/2;
+        var com = SHIP_SIZE/5;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo( // start left
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
+            ship.x - (ship.r-com) * (1 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
+            ship.y + (ship.r-com) * (1 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
         );
         ctx.lineTo( // end left
             
@@ -691,8 +693,8 @@ function draw()
         
         ctx.beginPath();
         ctx.moveTo( // start right
-            ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
+            ship.x - (ship.r-com) * (1 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
+            ship.y + (ship.r-com) * (1 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
         );
         ctx.lineTo( // end right
             ship.x - (ship.r+size) * (2 / 3 * Math.cos(ship.a-ac) - Math.sin(ship.a-ac)),
@@ -706,13 +708,12 @@ function draw()
         {
             ship.a += ship.rot;
         }
-
         //thrusting and gravity
-        previous_x = ship.x;
-        previous_y = ship.y;
-        ship.x += ship.thrust.x;
-        ship.y += ship.thrust.y+vel;
-        gravity += grav_inc;
+        // previous_x = ship.x;
+        // previous_y = ship.y;
+        // ship.x += ship.thrust.x;
+        // ship.y += ship.thrust.y+vel;
+        // gravity += grav_inc;
 
         // @note Fuel consumption
         if (ship.thrusting == true)
