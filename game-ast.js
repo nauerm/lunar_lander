@@ -30,7 +30,7 @@ var fuel_on = 1;
 const MAX_FUEL = 15;
 const FPS = 30; // frames per second
 const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 40; // ship height in pixels
+const SHIP_SIZE = 12; // ship height in pixels
 const SHIP_THRUST_MAX = 2;
 const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
@@ -44,15 +44,15 @@ const padding_from_right = 270;
 const debug = 0;
 // set up the spaceship object
 const ship_initial = {
-    x: 260,
-    y: 250,
+    x: SHIP_SIZE/2,
+    y: SHIP_SIZE*2,
     r: SHIP_SIZE / 2,
     a: 1.57,
-    rot: 0,
+    rot: -0.005,
     thrusting: false,
     thrust: {
-        x: 0,
-        y: 0
+        x: 2,
+        y: -1
     }
 }
 
@@ -60,9 +60,9 @@ var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 10;
+var floor_units = 20;
 const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 20;
+const rnd_floor_height = 200;
 var floor_heights = [];
 min_floor_diff= 1.5;
 
@@ -519,6 +519,9 @@ function draw()
             gravity = 0;
         }
 
+        //Drawing variables
+        var thrustersize = SHIP_SIZE/3;
+        var thrusteroffset = SHIP_SIZE/6;
 
         // thrust the ship
         if (ship.thrusting) {
@@ -533,16 +536,16 @@ function draw()
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 ctx.moveTo( // rear left
-                    ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + 0.5 * Math.sin(ship.a)),
-                    ship.y + ship.r * (2 / 3 * Math.sin(ship.a) - 0.5 * Math.cos(ship.a))
+                    ship.x + (thrustersize) * (Math.cos(ship.a-degrees_to_radians(90))) - thrusteroffset*Math.cos(ship.a),
+                    ship.y + (thrustersize) * (Math.sin(ship.a+degrees_to_radians(90))) + thrusteroffset*Math.sin(ship.a)
                 );
                 ctx.lineTo( // rear centre (behind the ship)
                     ship.x - 0.8*(ship.r) * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)) + 1*Math.random(),
                     ship.y + 0.8*(ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a)) + 2*Math.random()
                 );
                 ctx.lineTo( // rear right
-                    ship.x -ship.r * (2 / 3 * Math.cos(ship.a) - 0.5 * Math.sin(ship.a)),
-                    ship.y +ship.r * (2 / 3 * Math.sin(ship.a) + 0.5 * Math.cos(ship.a))
+                    ship.x + (thrustersize) * (Math.cos(ship.a+degrees_to_radians(90))) - thrusteroffset*Math.cos(ship.a),
+                    ship.y + (thrustersize) * (Math.sin(ship.a-degrees_to_radians(90))) + thrusteroffset*Math.sin(ship.a)
                 );
                 ctx.closePath();
                 ctx.fill();
@@ -550,27 +553,53 @@ function draw()
             }
         }
 
+        var thrustertop = SHIP_SIZE*1;
+
         // @note Ship drawing
         ctx.strokeStyle = "white";
         ctx.fillStyle = "black";
-        var thrustertop = SHIP_SIZE/5;
-        var thrustersize = SHIP_SIZE/2;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo( // nose of the ship
             ship.x + thrustertop * Math.cos(ship.a),
             ship.y - thrustertop * Math.sin(ship.a)
         );
-        ctx.lineTo( // rear left
-            ship.x + (thrustersize) * (Math.cos(ship.a+1.57)),
-            ship.y + (thrustersize) * (Math.sin(ship.a))
-        );
         ctx.lineTo( // rear right
-            ship.x - (thrustersize) * (Math.cos(ship.a+1.57)),
-            ship.y + (thrustersize) * (Math.sin(ship.a))
+            ship.x + (thrustersize) * (Math.cos(ship.a-degrees_to_radians(90))),
+            ship.y + (thrustersize) * (Math.sin(ship.a+degrees_to_radians(90)))
+        );
+        ctx.lineTo( // rear left
+            ship.x + (thrustersize) * (Math.cos(ship.a+degrees_to_radians(90))),
+            ship.y + (thrustersize) * (Math.sin(ship.a-degrees_to_radians(90)))
         );
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
+
+        
+        // @note Draw landing gear
+        ctx.strokeStyle = "white";
+        var lg_size_x = SHIP_SIZE/1.2;
+        var lg_size_y = SHIP_SIZE/1.5;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo( // start
+            ship.x + thrustertop * Math.cos(ship.a),
+            ship.y - thrustertop * Math.sin(ship.a)
+        );
+        ctx.lineTo( // end left
+            ship.x - (lg_size_x)*Math.sin(ship.a) - (lg_size_y)*Math.cos(ship.a),
+            ship.y + (lg_size_y)*Math.sin(ship.a) - (lg_size_x)*Math.cos(ship.a)
+        );
+        ctx.stroke();
+        ctx.moveTo( // start
+            ship.x + thrustertop * Math.cos(ship.a),
+            ship.y - thrustertop * Math.sin(ship.a)
+        );
+        ctx.lineTo( // end right
+            ship.x + (lg_size_x)*Math.sin(ship.a) - (lg_size_y)*Math.cos(ship.a),
+            ship.y + (lg_size_y)*Math.sin(ship.a) + (lg_size_x)*Math.cos(ship.a)
+        );
         ctx.stroke();
 
         // @note Draw rectangular parts of module
@@ -623,7 +652,7 @@ function draw()
 
         //@note Draw top of module
         var circlesize = SHIP_SIZE/2.5;
-        var circlepos = SHIP_SIZE/3;
+        var circlepos = SHIP_SIZE/1.5;
         ctx.beginPath();
         ctx.fillStyle = "black";
         ctx.arc(ship.x + circlepos * Math.cos(ship.a), ship.y - circlepos * Math.sin(ship.a), circlesize, 0, 2 * Math.PI);
@@ -673,47 +702,18 @@ function draw()
         // ctx.stroke();w
         // ctx.translate(0,(SHIP_SIZE+3));
 
-        // @note Draw landing gear
-        ctx.strokeStyle = "white";
-        var ac = 0.45;
-        var size = SHIP_SIZE/2;
-        var com = SHIP_SIZE/5;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo( // start left
-            ship.x - (ship.r-com) * (1 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-            ship.y + (ship.r-com) * (1 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        );
-        ctx.lineTo( // end left
-            
-             ship.x - (ship.r+size) * (2 / 3 * Math.cos(ship.a+ac) + Math.sin(ship.a+ac)),
-             ship.y + (ship.r+size) * (2 / 3 * Math.sin(ship.a+ac) - Math.cos(ship.a+ac))
-        );
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo( // start right
-            ship.x - (ship.r-com) * (1 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-            ship.y + (ship.r-com) * (1 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        );
-        ctx.lineTo( // end right
-            ship.x - (ship.r+size) * (2 / 3 * Math.cos(ship.a-ac) - Math.sin(ship.a-ac)),
-            ship.y + (ship.r+size) * (2 / 3 * Math.sin(ship.a-ac) + Math.cos(ship.a-ac))
-        );
-        ctx.stroke();
-
         // @note Movement
         //rotation
         if (rotation<180 || rotation >= 0)
         {
             ship.a += ship.rot;
         }
-        //thrusting and gravity
-        // previous_x = ship.x;
-        // previous_y = ship.y;
-        // ship.x += ship.thrust.x;
-        // ship.y += ship.thrust.y+vel;
-        // gravity += grav_inc;
+        // thrusting and gravity
+        previous_x = ship.x;
+        previous_y = ship.y;
+        ship.x += ship.thrust.x;
+        ship.y += ship.thrust.y+vel;
+        gravity += grav_inc;
 
         // @note Fuel consumption
         if (ship.thrusting == true)
@@ -729,8 +729,9 @@ function draw()
             ship.thrusting == false;
         }
 
+        var detection = SHIP_SIZE+lg_size_y-5;
         //@note Win/lose detection
-        if((altitude <= floor_height+ship.r*2+8) 
+        if((altitude <= floor_height+detection) 
         && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
         && (ship.x>=seg_int*floor_tile_size && ship.x<=(seg_int+1)*floor_tile_size) 
         && (vel_y <= 1.2))
@@ -747,7 +748,7 @@ function draw()
             gravity = 0;       
             game_on = 2; 
         }
-        else if(altitude <= floor_height+ship.r*2+8 &&
+        else if(altitude <= floor_height+detection &&
             !(ship.x>=seg_int*floor_tile_size && (seg_int+1)*floor_tile_size<=580))
         {
         ctx.fillStyle = "lightgreen";
@@ -759,7 +760,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if(altitude<= floor_height+ship.r*2+8 &&
+        else if(altitude<= floor_height+detection &&
             ship.a > 1.571+angle_lim)
         {
         ctx.fillStyle = "crimson";
@@ -772,7 +773,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if(altitude<= floor_height+ship.r*2+8 &&
+        else if(altitude<= floor_height+detection &&
             ship.a < 1.571-angle_lim)
         {
         ctx.fillStyle = "crimson";
@@ -785,7 +786,7 @@ function draw()
         ship.y = ship.y
         gravity = 0;
         }
-        else if (altitude<= floor_height+ship.r*2+8)
+        else if (altitude<= floor_height+detection)
         {
         ctx.fillStyle = "crimson";
         ctx.font = "20px Trebuchet MS";
