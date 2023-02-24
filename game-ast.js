@@ -7,9 +7,6 @@ var fire = new Image();
 var X = new Image();
 
 //@note Variables
-var mX = 427;
-var mY = 10;
-
 var gravity = 0.5; 
 var grav_inc = gravity/40;
 var keypress = 0;
@@ -36,12 +33,13 @@ const TURN_SPEED = 1.5;
 const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
 const max_landing_speed = 2.5;
 const angle_lim = 0.15;
-const fuel_bar_length = cvs.width-420;
-const fuel_bar_height = 10;
-const fuel_bar_start_x = 130;
-const fuel_bar_start_y = 38;
+const fuel_bar_length = cvs.width*0.9;
+const fuel_bar_height = 15;
+const fuel_bar_start_x = cvs.width*0.05;
+const fuel_bar_start_y = 20;
 const padding_from_right = 270;
 const debug = 0;
+
 // set up the spaceship object
 const ship_initial = {
     x: SHIP_SIZE/2,
@@ -51,16 +49,18 @@ const ship_initial = {
     rot: -0.005,
     thrusting: false,
     thrust: {
-        x: 2,
+        x: 1,
         y: -1
     }
 }
+
+
 
 var fuel = MAX_FUEL;
 
 // @note Floor generation variables
 
-var floor_units = 20;
+var floor_units = 6;
 const floor_tile_size = cvs.width/floor_units;
 const rnd_floor_height = 200;
 var floor_heights = [];
@@ -178,33 +178,95 @@ function degrees_to_radians(degrees)
 function radians_to_degrees(radians)
 {
   return radians/(Math.PI/180);
+}        
+function drawrect() //@remind Blue rectangle
+{    
+    const rectX = cvs.width*0.1;
+    const rectY = cvs.height*0.85;
+    const rectWidth = 40;
+    const rectHeight = 70;
+    // Draw the rectangle on the canvas
+    ctx.fillStyle = "gray";
+    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+    
+    const rect2X = cvs.width*0.8;
+    const rect2Y = cvs.height*0.85;
+    const rect2Width = 40;
+    const rect2Height = 70;
+    // Draw the rectangle on the canvas
+    ctx.fillStyle = "gray";
+    ctx.fillRect(rect2X, rect2Y, rect2Width, rect2Height);
+
+    // Add an event listener for clicks on the canvas
+    canvas.addEventListener("click", handleClick);
+    // Add an event listener for click release on the canvas
+    canvas.addEventListener("mouseup", handleRelease);
+    
+    // Define the handleRelease function
+    function handleRelease(event) 
+    {    
+        ship.rot = 0;
+    }
+    // Define the handleClick function
+    function handleClick(event) 
+    {
+        const clickX = event.offsetX;
+        const clickY = event.offsetY;
+
+        // Check if the click is inside the rectangle
+        if (clickX > rectX && clickX < rectX + rectWidth && clickY > rectY && clickY < rectY + rectHeight) 
+        {
+            // Display a message on the screen
+            const messageDiv = document.createElement("div");
+            messageDiv.textContent = "Click left";
+            messageDiv.style.position = "absolute";
+            messageDiv.style.top = `${clickY}px`;
+            messageDiv.style.left = `${clickX}px`;
+            messageDiv.style.color = "red";
+            document.body.appendChild(messageDiv);      
+            ship.rot = TURN_SPEED / 180 * Math.PI;    
+        }
+        // Check if the click is inside the rectangle
+        if (clickX > rect2X && clickX < rect2X + rect2Width && clickY > rect2Y && clickY < rect2Y + rectHeight) 
+        {
+            // Display a message on the screen
+            const messageDiv = document.createElement("div");
+            messageDiv.textContent = "Click right";
+            messageDiv.style.position = "absolute";
+            messageDiv.style.top = `${clickY}px`;
+            messageDiv.style.left = `${clickX}px`;
+            messageDiv.style.color = "red";
+            document.body.appendChild(messageDiv);       
+            ship.rot = -TURN_SPEED / 180 * Math.PI;    
+        }
+    }
+
 }
             
 function drawtexts() //@note Texts
 {    
-
     // ctx.font = 15+"px Verdana";
     // ctx.fillText("Land on the          landing pad",cvs.width/2-110,20);
     
     // ctx.fillStyle = "white";
     // ctx.fillText("white",cvs.width/2-15,20);
 
-    ctx.fillStyle = "lightsteelblue";
-    const controls_height=40;
-    ctx.font = (15+cvs.width/500)+"px Verdana";
-    ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
-    ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
-    ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
-    ctx.fillText("Ctrl: Decrease power",cvs.width-padding_from_right,controls_height+70);
-    ctx.fillText("Left/A and Right/D: Rotation",cvs.width-padding_from_right,controls_height+90);
-    ctx.fillText("Space: Pause",cvs.width-padding_from_right,controls_height+110);
+    // ctx.fillStyle = "lightsteelblue";
+    // const controls_height=40;
+    // ctx.font = (15+cvs.width/500)+"px Verdana";
+    // ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
+    // ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
+    // ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
+    // ctx.fillText("Ctrl: Decrease power",cvs.width-padding_from_right,controls_height+70);
+    // ctx.fillText("Left/A and Right/D: Rotation",cvs.width-padding_from_right,controls_height+90);
+    // ctx.fillText("Space: Pause",cvs.width-padding_from_right,controls_height+110);
     
-    ctx.fillText("Fuel: "+parseFloat((fuel*100/MAX_FUEL).toFixed(1))+"%",10,controls_height+10);
-    ctx.fillText("Altitude: "+parseFloat(altitude.toFixed(0)),10,controls_height+30);
-    ctx.fillText("Vertical velocity: "+parseFloat(vel_y.toFixed(1)),10,controls_height+50);
-    ctx.fillText("Horizontal velocity: "+parseFloat(vel_x.toFixed(1)),10,controls_height+70);
-    ctx.fillText("Thrusters: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,controls_height+90);
-    ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
+    // ctx.fillText("Fuel: "+parseFloat((fuel*100/MAX_FUEL).toFixed(1))+"%",10,controls_height+10);
+    // ctx.fillText("Altitude: "+parseFloat(altitude.toFixed(0)),10,controls_height+30);
+    // ctx.fillText("Vertical velocity: "+parseFloat(vel_y.toFixed(1)),10,controls_height+50);
+    // ctx.fillText("Horizontal velocity: "+parseFloat(vel_x.toFixed(1)),10,controls_height+70);
+    // ctx.fillText("Thrusters: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,controls_height+90);
+    // ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
     
     if (debug == 1)
     {
@@ -404,7 +466,6 @@ function draw()
         seg_int = Math.floor(ship.x/floor_tile_size);
         floor_height = (floor_heights[seg_int]+floor_heights[seg_int+1])/2;
 
-
         vel_x = ship.x-previous_x;
         vel_y = ship.y-previous_y;
         altitude = (cvs.height-ship.y)+ship.r;
@@ -505,6 +566,8 @@ function draw()
         drawFloor();        
 
         drawtexts();
+
+        drawrect();
 
         // pauses when reaches edges of the canvas
         if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
