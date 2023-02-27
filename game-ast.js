@@ -179,23 +179,31 @@ function radians_to_degrees(radians)
 {
   return radians/(Math.PI/180);
 }        
-function drawrect() //@remind Blue rectangle
+function drawrect() //@remind Buttons
 {    
+
+    //Steering buttons
     const rectX = cvs.width*0.1;
     const rectY = cvs.height*0.85;
     const rectWidth = 40;
     const rectHeight = 70;
-    // Draw the rectangle on the canvas
-    ctx.fillStyle = "gray";
-    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-    
     const rect2X = cvs.width*0.8;
     const rect2Y = cvs.height*0.85;
     const rect2Width = 40;
     const rect2Height = 70;
-    // Draw the rectangle on the canvas
+    // Draw the buttons on the canvas
     ctx.fillStyle = "gray";
+    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
     ctx.fillRect(rect2X, rect2Y, rect2Width, rect2Height);
+
+    //Throtle button    
+    const throttleX = cvs.width*0.3;
+    const throttleY = cvs.height*0.875;
+    const throttleW = 150;
+    const throttleH = 40;
+    // Draw the button on the canvas
+    ctx.fillStyle = "springgreen";
+    ctx.fillRect(throttleX, throttleY, throttleW, throttleH);
 
     // Add an event listener for clicks on the canvas
     canvas.addEventListener("click", handleClick);
