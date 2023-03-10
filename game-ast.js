@@ -4,11 +4,13 @@ var ctx = canvas.getContext("2d");
 // Variáveis
 CHAR_WIDTH = 25;
 CHAR_HEIGHT = 25;
-INIT_POS_X = 50;
+INIT_POS_X = canvas.width/2;
 INIT_POS_Y = 50;
 VEL = 3;
 GRAVITY = 0.02;
 THRUST = 0.04;
+ANGLE_INCREMENT = 1e-4;
+MOVE_INCREMENT = 1e-4;
 
 //Valor de "offset" para o qual o personagem não segue mais o toque na tela
 OFFSET = CHAR_WIDTH/2; 
@@ -22,6 +24,7 @@ let charCenterX = 0;
 let charCenterY = 0;
 let angle = 0;
 
+let move = '';
 let vx = 0;
 let vy = 0;
 
@@ -131,7 +134,35 @@ function drawStars()
 
 }
 
-//@note Game drawing
+function drawRabo()
+{
+        //Rabo do foguete
+        // calculate the rotated points of the rectangle
+        x1 = x -0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+        y1 = y -0.5*CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+    
+        x5 = x - 0.5*CHAR_WIDTH*1.5 * Math.sin(angle);;
+        y5 = y + 0.5*CHAR_HEIGHT * Math.cos(angle);
+    
+        x2 = x + 0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+        y2 = y + 0.5*CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+    
+        // Desenho do rabo do foguete
+        ctx.fillStyle = "cyan";
+        // Desenho da borda
+        ctx.beginPath();
+        ctx.lineWidth = 0.1;
+        ctx.strokeStyle = "#000";
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x5, y5);
+        ctx.lineTo(x2, y2);
+        // ctx.lineTo(x3, y3);
+        // ctx.lineTo(x4, y4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+}
+
 function draw()
 { 
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.height);
@@ -139,60 +170,73 @@ function draw()
     // calculate the direction to move the character
     deltaX = clickX_main - x;
     deltaY = clickY_main - y;
-    
-    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    //Só move se clicando ou arrastando E o delta em pelo menos uma das posições é grande
-    if (isMoving && (Math.abs(deltaX) > OFFSET || Math.abs(deltaY) > OFFSET))
-    {
-        vx = deltaX / distance * VEL * 0.5;
-    }
-    else
-    {
-        vx = 0;
-        vy = 0;
-    }
 
     x += vx;
     y += vy;
     
+    charCenterX = x + CHAR_WIDTH / 2;
+    charCenterY = y + CHAR_HEIGHT / 2;
+
     // Influência da gravidade
     free_fall_vel += GRAVITY;
     if(isMoving)
     {
         free_fall_vel -= THRUST; 
+                
+        if (charCenterX >= clickX_main)
+        {
+            //clique foi à esquerda
+            angle -= ANGLE_INCREMENT*deltaX;
+            //move para direita
+            vx -= MOVE_INCREMENT*deltaX;
+        }
+        else if (charCenterX <= clickX_main)
+        {
+            //clique foi à direita
+            angle -= ANGLE_INCREMENT*deltaX;
+            //move para esquerda
+            vx -= MOVE_INCREMENT*deltaX;
+        }
     }
-
     y += free_fall_vel;
-    
-    charCenterX = x + CHAR_WIDTH / 2;
-    charCenterY = y + CHAR_HEIGHT / 2;
 
     // calculate the rotated points of the rectangle
     x1 = x -CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
     y1 = y -CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
 
+    x5 = x + CHAR_WIDTH*1.5 * Math.sin(angle);;
+    y5 = y - CHAR_HEIGHT*1.5 * Math.cos(angle);
+
     x2 = x + CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
     y2 = y + CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
 
-    x3 = x + CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
-    y3 = y + CHAR_WIDTH/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
+    // Nave triangular, sem x3, y3 e x4, y4
+    // x3 = x + CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
+    // y3 = y + CHAR_HEIGHT/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
 
-    x4 = x -CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
-    y4 = y -CHAR_WIDTH/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
+    // x4 = x -CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
+    // y4 = y -CHAR_HEIGHT/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
 
     // Desenho do personagem
     ctx.fillStyle = "#fff";
     // Desenho da borda do personagem
     ctx.beginPath();
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.moveTo(x1, y1);
+    ctx.lineTo(x5, y5);
     ctx.lineTo(x2, y2);
-    ctx.lineTo(x3, y3);
-    ctx.lineTo(x4, y4);
+    // ctx.lineTo(x3, y3);
+    // ctx.lineTo(x4, y4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+
+
+    if(isMoving)
+    {
+        drawRabo();
+    }
     
     drawStars();
     drawTerrain();
@@ -207,27 +251,17 @@ document.addEventListener('contextmenu', event => event.preventDefault());
 
 canvas.addEventListener("touchstart", function(e) {
   
-  // Pega a posição relativa do canvas
-  let canvasRect = canvas.getBoundingClientRect();
+    // Pega a posição relativa do canvas
+    let canvasRect = canvas.getBoundingClientRect();
 
-  // get the x and y coordinates of the mouse click event
-  clickX = e.touches[0].clientX - canvasRect.left;
-  clickY = e.touches[0].clientY - canvasRect.top;
-  clickX_main = clickX;
-  clickY_main = clickY;
+    // get the x and y coordinates of the mouse click event
+    clickX = e.touches[0].clientX - canvasRect.left;
+    clickY = e.touches[0].clientY - canvasRect.top;
+    clickX_main = clickX;
+    clickY_main = clickY;
 
-  // Check if the click is inside the shoot button
-  if (clickX > shootX-shootRadius && clickX < shootX+shootRadius && clickY > shootY-shootRadius && clickY < shootY+shootRadius) 
-  {
-      isMoving = false;   
-      shootRadius += 1;
-  }
-  else
-  {
     // set the flag to indicate that the character should start moving
     isMoving = true;
-    angle = -Math.atan2(clickY - charCenterY, clickX - charCenterX);
-  }
 
 });
 
@@ -247,18 +281,6 @@ addEventListener("touchmove", function(e) {
         clickY = e.touches[0].clientY - canvasRect.top;
         clickX_main = clickX;
         clickY_main = clickY;
-        
-        // Check if the click is inside the shoot button
-        if (clickX > shootX-shootRadius && clickX < shootX+shootRadius && clickY > shootY-shootRadius && clickY < shootY+shootRadius) 
-        {
-            console.log('Click on button'); 
-            isMoving = false;   
-            shootRadius += 1;
-        }
-        else
-        {
-          angle = -Math.atan2(clickY - charCenterY, clickX - charCenterX);
-        }
     }
 
 });
