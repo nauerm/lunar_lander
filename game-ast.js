@@ -1,916 +1,109 @@
-var cvs = document.getElementById("canvas");
-var ctx = cvs.getContext("2d");
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
 
-// load images
-var module = new Image();
-var fire = new Image();
-var X = new Image();
+// Variáveis
+CHAR_WIDTH = 25;
+CHAR_HEIGHT = 25;
+INIT_POS_X = 50;
+INIT_POS_Y = 50;
+VEL = 3;
+GRAVITY = 0.02;
+THRUST = 0.04;
 
-//@note Variables
-var gravity = 0.5; 
-var grav_inc = gravity/40;
-var keypress = 0;
-var altitude;
-var vel = 0;
-var key;
-var rotation = 90;
-var rot_rad;
-var turnspeed = 3;
-var SHIP_THRUST = 1; // acceleration of the ship in pixels per second per second
-var game_on = 0;
-var floor_gen = 0;
-var segment = 0;
-var seg_int = 0;
-var floor_height = 40;
-var fuel_on = 1;
+//Valor de "offset" para o qual o personagem não segue mais o toque na tela
+OFFSET = CHAR_WIDTH/2; 
 
-const MAX_FUEL = 15;
-const FPS = 30; // frames per second
-const FRICTION = 0.7; // friction coefficient of space (0 = no friction, 1 = lots of friction)
-const SHIP_SIZE = 12; // ship height in pixels
-const SHIP_THRUST_MAX = 2;
-const TURN_SPEED = 1.5;
-const MAX_THRUST_VECTOR = 20; // thrust vector for the fire triangle
-const max_landing_speed = 2.5;
-const angle_lim = 0.15;
-const fuel_bar_length = cvs.width*0.9;
-const fuel_bar_height = 15;
-const fuel_bar_start_x = cvs.width*0.05;
-const fuel_bar_start_y = 20;
-const padding_from_right = 270;
-const debug = 0;
+let free_fall_vel = 0;
+let x = INIT_POS_X;
+let y = INIT_POS_Y;
+let radius = CHAR_WIDTH;
 
-// set up the spaceship object
-const ship_initial = {
-    x: SHIP_SIZE/2,
-    y: SHIP_SIZE*2,
-    r: SHIP_SIZE / 2,
-    a: 1.57,
-    rot: -0.005,
-    thrusting: false,
-    thrust: {
-        x: 1,
-        y: -1
-    }
-}
+let charCenterX = 0; 
+let charCenterY = 0;
+let angle = 0;
+
+let vx = 0;
+let vy = 0;
+
+let deltaX = 0;
+let deltaY = 0;
+let clickX_main = 0;
+let clickY_main = 0;
+let x1 = 0;
+let x2 = 0;
+let x3 = 0;
+let x4 = 0;
+let y1 = 0;
+let y2 = 0;
+let y3 = 0;
+let y4 = 0;
+
+//Botão de tiro
+const shootX = canvas.width*0.80;
+const shootY = canvas.height*0.85;
+let shootRadius = 40;
+
+// flag para indicar quto track if the character is currently moving
+let isMoving = false; 
+
+TERRAIN_MAX_HEIGHT = canvas.height*0.1;
+TERRAIN_MIN_HEIGHT = canvas.height*0.1;
+TERRAIN_MIN_QTY = 10;
+TERRAIN_MAX_QTY = 100;
+TERRAIN_MIN_WIDTH = CHAR_WIDTH;
+TERRAIN_MAX_WIDTH = 40;
+var terrain = TERRAIN_MIN_QTY + Math.floor(Math.random() * TERRAIN_MAX_QTY);
+var terrain_x = Array.from({length: terrain}, () => TERRAIN_MIN_WIDTH + Math.floor(Math.random()*TERRAIN_MAX_WIDTH));
+var terrain_y = Array.from({length: terrain}, () => (canvas.height-TERRAIN_MIN_HEIGHT) - Math.floor(Math.random()*TERRAIN_MAX_HEIGHT));
 
 
-
-var fuel = MAX_FUEL;
-
-// @note Floor generation variables
-
-var floor_units = 6;
-const floor_tile_size = cvs.width/floor_units;
-const rnd_floor_height = 200;
-var floor_heights = [];
-min_floor_diff= 1.5;
-
-// set up the spaceship object
-var ship = ship_initial;
-
-//@note Key Events
-document.addEventListener("keydown", keys); 
-function keys(event)
-{  
-    switch(event.keyCode) 
-    {
-        case 38: // up pressed
-            if (fuel>0)
-            {
-                if (fuel_on == 1)
-                {
-                ship.thrusting = true;
-                }
-                else
-                break;
-            }   
-            else
-                ship.thrusting = false;
-            break;
-        case 87: // w pressed
-            if (fuel<=0)
-            {
-                ship.thrusting = false;   
-                return;
-            }   
-            else
-            {
-                ship.thrusting = true;
-            }
-        break;
-        case 37: // left pressed
-            ship.rot = TURN_SPEED / 180 * Math.PI;
-        break;
-        case 65: // a pressed
-            ship.rot = TURN_SPEED / 180 * Math.PI;
-        break;
-        case 39: // right pressed
-            ship.rot = -TURN_SPEED / 180 * Math.PI;
-        break;
-        case 68: // d pressed
-            ship.rot = -TURN_SPEED / 180 * Math.PI;
-        break;
-        case 32: // space pressed
-        switch(game_on)
-        {
-            case 0:
-                game_on = 1; // pause the game
-            break;
-            case 1:
-                game_on = 0; // unpause the game            
-                draw();
-            break;
-            case 2:
-                // ship = ship_initial;
-                // fuel = MAX_FUEL;
-                location.reload();
-                game_on = 0; // unpause the game            
-                draw();
-            break;
-        }
-        break;
-    }
-
-    // if key is SHIFT, increase thrusters value
-    if(event.keyCode == 16 && SHIP_THRUST <=SHIP_THRUST_MAX)
-    { 
-        SHIP_THRUST +=0.1;
-    }
-    
-    // if key is ctrl, decrease thrusters value
-    if(event.keyCode == 17 && SHIP_THRUST >=0)
-    { 
-        SHIP_THRUST -=0.1;
-    }
-}
-
-document.addEventListener("keyup", releaseKey);
-function releaseKey(event) 
+function drawTerrain()
 {
-    switch(event.keyCode) 
-    {
-        case 37: // left arrow (stop rotating left)
-            ship.rot = 0;
-            break;
-        case 65: // a (stop rotating left)
-            ship.rot = 0;
-            break;
-        case 38: // up arrow (stop thrusting)
-            ship.thrusting = false;
-            break;
-        case 87: // w (stop thrusting)
-            ship.thrusting = false;
-            break;
-        case 39: // right arrow (stop rotating right)
-            ship.rot = 0;
-            break;
-        case 68: // d (stop rotating right)
-            ship.rot = 0;
-        break;
-    }
-    keypress = 0;
-}
-function degrees_to_radians(degrees)
-{
-  return degrees * (Math.PI/180);
-}
-function radians_to_degrees(radians)
-{
-  return radians/(Math.PI/180);
-}        
-function drawrect() //@remind Buttons
-{    
-
-    //Steering buttons
-    const rectX = cvs.width*0.1;
-    const rectY = cvs.height*0.85;
-    const rectWidth = 40;
-    const rectHeight = 70;
-    const rect2X = cvs.width*0.8;
-    const rect2Y = cvs.height*0.85;
-    const rect2Width = 40;
-    const rect2Height = 70;
-    // Draw the buttons on the canvas
-    ctx.fillStyle = "gray";
-    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-    ctx.fillRect(rect2X, rect2Y, rect2Width, rect2Height);
-
-    //Throtle button    
-    const throttleX = cvs.width*0.3;
-    const throttleY = cvs.height*0.875;
-    const throttleW = 150;
-    const throttleH = 40;
-    // Draw the button on the canvas
-    ctx.fillStyle = "springgreen";
-    ctx.fillRect(throttleX, throttleY, throttleW, throttleH);
-
-    // Add an event listener for clicks on the canvas
-    canvas.addEventListener("click", handleClick);
-    // Add an event listener for click release on the canvas
-    canvas.addEventListener("mouseup", handleRelease);
+    var current_terrain_x = 0;
     
-    // Define the handleRelease function
-    function handleRelease(event) 
-    {    
-        ship.rot = 0;
-    }
-    // Define the handleClick function
-    function handleClick(event) 
-    {
-        const clickX = event.offsetX;
-        const clickY = event.offsetY;
-
-        // Check if the click is inside the rectangle
-        if (clickX > rectX && clickX < rectX + rectWidth && clickY > rectY && clickY < rectY + rectHeight) 
-        {
-            // Display a message on the screen
-            const messageDiv = document.createElement("div");
-            messageDiv.textContent = "Click left";
-            messageDiv.style.position = "absolute";
-            messageDiv.style.top = `${clickY}px`;
-            messageDiv.style.left = `${clickX}px`;
-            messageDiv.style.color = "red";
-            document.body.appendChild(messageDiv);      
-            ship.rot = TURN_SPEED / 180 * Math.PI;    
-        }
-        // Check if the click is inside the rectangle
-        if (clickX > rect2X && clickX < rect2X + rect2Width && clickY > rect2Y && clickY < rect2Y + rectHeight) 
-        {
-            // Display a message on the screen
-            const messageDiv = document.createElement("div");
-            messageDiv.textContent = "Click right";
-            messageDiv.style.position = "absolute";
-            messageDiv.style.top = `${clickY}px`;
-            messageDiv.style.left = `${clickX}px`;
-            messageDiv.style.color = "red";
-            document.body.appendChild(messageDiv);       
-            ship.rot = -TURN_SPEED / 180 * Math.PI;    
-        }
-    }
-
-}
-            
-function drawtexts() //@note Texts
-{    
-    // ctx.font = 15+"px Verdana";
-    // ctx.fillText("Land on the          landing pad",cvs.width/2-110,20);
-    
-    // ctx.fillStyle = "white";
-    // ctx.fillText("white",cvs.width/2-15,20);
-
-    // ctx.fillStyle = "lightsteelblue";
-    // const controls_height=40;
-    // ctx.font = (15+cvs.width/500)+"px Verdana";
-    // ctx.fillText("Controls:",cvs.width-padding_from_right,controls_height+10);
-    // ctx.fillText("Up/W: Activate thrusters",cvs.width-padding_from_right,controls_height+30);
-    // ctx.fillText("Shift: Increase power",cvs.width-padding_from_right,controls_height+50);
-    // ctx.fillText("Ctrl: Decrease power",cvs.width-padding_from_right,controls_height+70);
-    // ctx.fillText("Left/A and Right/D: Rotation",cvs.width-padding_from_right,controls_height+90);
-    // ctx.fillText("Space: Pause",cvs.width-padding_from_right,controls_height+110);
-    
-    // ctx.fillText("Fuel: "+parseFloat((fuel*100/MAX_FUEL).toFixed(1))+"%",10,controls_height+10);
-    // ctx.fillText("Altitude: "+parseFloat(altitude.toFixed(0)),10,controls_height+30);
-    // ctx.fillText("Vertical velocity: "+parseFloat(vel_y.toFixed(1)),10,controls_height+50);
-    // ctx.fillText("Horizontal velocity: "+parseFloat(vel_x.toFixed(1)),10,controls_height+70);
-    // ctx.fillText("Thrusters: "+parseFloat((SHIP_THRUST*100/SHIP_THRUST_MAX).toFixed(0))+"%",10,controls_height+90);
-    // ctx.fillText("Rotation: "+parseFloat(radians_to_degrees(ship.a).toFixed(0)-90)+"º",10,controls_height+110);
-    
-    if (debug == 1)
-    {
-        ctx.fillStyle = "#507080";
-        ctx.font = (10+cvs.width/500)+"px Verdana";
-        const debug_height=170;
-        ctx.fillText("Debug:",10,debug_height);
-        ctx.fillText("ship.thrust.y: "+parseFloat(ship.thrust.y.toFixed(1)),10,debug_height+15);
-        ctx.fillText("ship.thrust.x: "+parseFloat(ship.thrust.x.toFixed(1)),10,debug_height+30);
-        ctx.fillText("ship angle: "+parseFloat(ship.a.toFixed(3)),10,debug_height+45);
-        ctx.fillText("ship thrust: "+parseFloat(SHIP_THRUST.toFixed(1)),10,debug_height+60);
-        ctx.fillText("vel x: "+parseFloat(vel_x.toFixed(1)),10,debug_height+75);
-        ctx.fillText("ship.x "+parseFloat(ship.x.toFixed(1)),10,debug_height+90);
-        ctx.fillText("vel y "+parseFloat(vel_y.toFixed(1)),10,debug_height+105);
-        ctx.fillText("floor units: "+parseFloat(floor_units.toFixed(1)),10,debug_height+120);
-        ctx.fillText("game_on: "+parseFloat(game_on.toFixed(1)),10,debug_height+150);
-        
-
-        // collision detection
-        ctx.fillStyle = "yellowgreen";
-        ctx.font = "16px Verdana";
-        ctx.fillText("Over the segment: "+seg_int+"-"+(seg_int+1),cvs.width/2-100,200);
-        ctx.fillText("Floor height from "+parseFloat(floor_heights[seg_int].toFixed(2))+" to "+parseFloat(floor_heights[seg_int+1].toFixed(2)),cvs.width/2-140,230);
-
-        //to do list
-        const todo_height = cvs.height-240;
-        ctx.fillStyle = "#507080";
-        ctx.font = (10+cvs.width/500)+"px Verdana";
-        ctx.fillText("To do list:",10,todo_height);
-        ctx.fillText("• Stop thrusting even if key is pressed when fuel is depleted",10,todo_height+20);
-        ctx.fillText("• Implement collision with the floor",10,todo_height+40);
-        ctx.fillText("• Bar to indicate fuel",10,todo_height+60);
-        
-    }
-
-}
-
-var flat = 0;
-var aux = 0;
-var aux2 = 0;
-//@note Floor generation
-function drawFloor()
-{
-        // procedural floor generation
-        ctx.strokeStyle = "white";
-        ctx.beginPath();
-        ctx.moveTo( 
-            0,
-            cvs.height-Math.random()*rnd_floor_height
-        );
-        for (n=0;n<=floor_units;n++)
-        {
-            if (floor_gen == 0)
-            {
-                floor_heights[n] = Math.random()*rnd_floor_height+cvs.height/14;
-            }
-            if (n>0)
-            {
-                if (Math.abs(floor_heights[n]-floor_heights[n-1]) < min_floor_diff && flat<floor_units)    
-                {
-                    flat += 1;
-                    aux = n-1;
-                    aux = n;
-                }
-                else if (Math.abs(floor_heights[n]-floor_heights[n-1]) >= 5 && flat == 0)  
-                {
-                    ctx.fillStyle = "yellowgreen";
-                        ctx.font = "20px Verdana";
-                        ctx.fillText("Not a flat area",cvs.width/2-60,cvs.height/2+90);
-                }
-
-            } 
-            // after generating entire floor there's no flat segment
-            if (n == floor_units && flat == 0)
-            {
-                n = 0;
-            }
-            else
-            {
-                ctx.lineTo(
-                    0+n*floor_tile_size,
-                    cvs.height-floor_heights[n]
-                );
-            }
-        }
-        ctx.lineTo(
-            cvs.width,
-            cvs.height
-        );
-        ctx.lineTo(
-            0,
-            cvs.height
-        );
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "lightsteelblue";
-        ctx.fillStyle = "lightsteelblue";
-        ctx.closePath();
-        ctx.fill(); 
-        ctx.stroke(); 
-        floor_gen = 1;  
-    
-    // // draw the floor
-    // ctx.strokeStyle = "white";
-    // ctx.lineWidth = 1;
-    // ctx.beginPath();
-
-    // //regular floor
-    // ctx.moveTo( 0,
-    //     cvs.height-floor_height
-    // );
-    // ctx.lineTo(
-    //     cvs.width,
-    //     cvs.height-floor_height
-    // );
-    // irregular floor
-    // ctx.moveTo( 0,
-    //     cvs.height-10
-    // );
-    // ctx.lineTo(
-    //     20,
-    //     cvs.height-15
-    // );
-    // ctx.lineTo(
-    //     110,
-    //     cvs.height-20
-    // );
-    // ctx.lineTo( 
-    //     150,
-    //     cvs.height-35
-    // );
-    // ctx.lineTo( 
-    //     390,
-    //     cvs.height-60
-    // );
-    // ctx.lineTo( 
-    //     420,
-    //     cvs.height-75
-    // );
-    // ctx.lineTo( 
-    //     450,
-    //     cvs.height-75
-    // );
-    // ctx.lineTo( 
-    //     470,
-    //     cvs.height-90
-    // );
-    // ctx.stroke();
-
-    // ctx.lineWidth = 3;
-    // ctx.beginPath();
-    // ctx.moveTo( 
-    //     470,
-    //     cvs.height-floor_height
-    // );
-    // ctx.strokeStyle = "yellowgreen";
-    // ctx.lineTo( 
-    //     580,
-    //     cvs.height-floor_height
-    // );
-    // ctx.stroke();
-    // ctx.beginPath();
-    // ctx.moveTo( 
-    //     580,
-    //     cvs.height-floor_height
-    // );
-    // ctx.strokeStyle = "white";
-    // ctx.lineTo( 
-    //     600,
-    //     cvs.height-65
-    // );
-    // ctx.lineTo( 
-    //     cvs.width,
-    //     cvs.height-20
-    // );
-    // ctx.stroke();
-}
-
-const pos = [];
-
-var vel_x = 0;
-var vel_y = 0;
-var previous_x = ship.x;
-var previous_y = ship.y;
-var star_size = 1;
-var stars = Math.floor(Math.random() * (150 - 1 + 1) ) + 50;
-var star_x = Array.from({length: stars}, () => Math.floor(Math.random()*cvs.width));
-var star_y = Array.from({length: stars}, () => Math.floor(Math.random()*cvs.height));
-
-//@note Game drawing
-function draw()
-{ 
-
-    if (game_on == 0)
-    {
-        //floor segment detection
-        segment = ship.x/floor_tile_size;
-        seg_int = Math.floor(ship.x/floor_tile_size);
-        floor_height = (floor_heights[seg_int]+floor_heights[seg_int+1])/2;
-
-        vel_x = ship.x-previous_x;
-        vel_y = ship.y-previous_y;
-        altitude = (cvs.height-ship.y)+ship.r;
-        vel =+ gravity;
-
-        if (fuel<0)
-        fuel = 0;
-        if (SHIP_THRUST>SHIP_THRUST_MAX)
-        SHIP_THRUST = SHIP_THRUST_MAX;
-        if (SHIP_THRUST<0)
-        SHIP_THRUST = 0;
-        
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle="#ffffff";
-        ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
-        
-        // @note Draw stars
-        ctx.fillStyle = "white";
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 0.5;
-        for (i = 0; i<stars; i++)
-        {
-        ctx.beginPath();
-        ctx.moveTo(
-            star_x[i],
-            star_y[i]
-        );
-        ctx.lineTo(
-            star_x[i]+star_size,
-            star_y[i]-star_size
-        );
-        ctx.lineTo(
-            star_x[i]+2*star_size,
-            star_y[i]
-        );
-        
-        ctx.lineTo(
-            star_x[i]+star_size,
-            star_y[i]+star_size
-        );
-        ctx.fill();
-        ctx.closePath();
-        ctx.stroke();
-        }
-
-        //@note Draw fuel bar
-        //background
-        ctx.strokeStyle = "cyan";
-        ctx.fillStyle = "black";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo( // top left
-            fuel_bar_start_x,
-            fuel_bar_start_y
-        );
-        ctx.lineTo( // top right
-            fuel_bar_start_x+fuel_bar_length,
-            fuel_bar_start_y    
-        );
-        ctx.lineTo( // bottom right
-            fuel_bar_start_x+fuel_bar_length,
-            fuel_bar_start_y+fuel_bar_height     
-        );
-        ctx.lineTo( // bottom left
-            fuel_bar_start_x,
-            fuel_bar_start_y+fuel_bar_height     
-        );
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        // fuel
-        ctx.fillStyle = "springgreen";
-        ctx.lineWidth = 0;
-        ctx.beginPath();
-        ctx.moveTo( // top left
-            fuel_bar_start_x,
-            fuel_bar_start_y
-        );
-        ctx.lineTo( // top right
-            fuel_bar_start_x+fuel_bar_length*(fuel/MAX_FUEL),
-            fuel_bar_start_y    
-        );
-        ctx.lineTo( // bottom right
-            fuel_bar_start_x+fuel_bar_length*(fuel/MAX_FUEL),
-            fuel_bar_start_y+fuel_bar_height     
-        );
-        ctx.lineTo( // bottom left
-            fuel_bar_start_x,
-            fuel_bar_start_y+fuel_bar_height     
-        );
-        ctx.closePath();
-        ctx.fill();
-
-
-        drawFloor();        
-
-        drawtexts();
-
-        drawrect();
-
-        // pauses when reaches edges of the canvas
-        if ((altitude <= 0)||ship.y <0 || ship.x <0 || ship.x > cvs.width)
-        {
-            ctx.fillStyle = "lightgreen";
-            ctx.font = "20px Trebuchet MS";
-            ctx.fillText("Out of game screen",cvs.width/2-75,cvs.height/2);
-            ctx.fillText("Press Space to restart",cvs.width/2-83,cvs.height/2+30);
-            game_on = 2; 
-            ship.x = ship.x
-            ship.y = ship.y
-            gravity = 0;
-        }
-
-        //Drawing variables
-        var thrustersize = SHIP_SIZE/3;
-        var thrusteroffset = SHIP_SIZE/6;
-
-        // thrust the ship
-        if (ship.thrusting) {
-            ship.thrust.x += 0.25* SHIP_THRUST * Math.cos(ship.a) / FPS;
-            ship.thrust.y -= 0.5*SHIP_THRUST * Math.sin(ship.a) / FPS;
-
-            // @note Thruster drawing
-            if(SHIP_THRUST>0)
-            {
-                ctx.fillStyle = "cyan";
-                ctx.strokeStyle = "mediumspringgreen";
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo( // rear left
-                    ship.x + (thrustersize) * (Math.cos(ship.a-degrees_to_radians(90))) - thrusteroffset*Math.cos(ship.a),
-                    ship.y + (thrustersize) * (Math.sin(ship.a+degrees_to_radians(90))) + thrusteroffset*Math.sin(ship.a)
-                );
-                ctx.lineTo( // rear centre (behind the ship)
-                    ship.x - 0.8*(ship.r) * 5 / 3 * Math.cos(ship.a) - ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.cos(ship.a)) + 1*Math.random(),
-                    ship.y + 0.8*(ship.r) * 5 / 3 * Math.sin(ship.a) + ((SHIP_THRUST/SHIP_THRUST_MAX)*MAX_THRUST_VECTOR*Math.sin(ship.a)) + 2*Math.random()
-                );
-                ctx.lineTo( // rear right
-                    ship.x + (thrustersize) * (Math.cos(ship.a+degrees_to_radians(90))) - thrusteroffset*Math.cos(ship.a),
-                    ship.y + (thrustersize) * (Math.sin(ship.a-degrees_to_radians(90))) + thrusteroffset*Math.sin(ship.a)
-                );
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
-
-        var thrustertop = SHIP_SIZE*1;
-
-        // @note Ship drawing
-        ctx.strokeStyle = "white";
-        ctx.fillStyle = "black";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo( // nose of the ship
-            ship.x + thrustertop * Math.cos(ship.a),
-            ship.y - thrustertop * Math.sin(ship.a)
-        );
-        ctx.lineTo( // rear right
-            ship.x + (thrustersize) * (Math.cos(ship.a-degrees_to_radians(90))),
-            ship.y + (thrustersize) * (Math.sin(ship.a+degrees_to_radians(90)))
-        );
-        ctx.lineTo( // rear left
-            ship.x + (thrustersize) * (Math.cos(ship.a+degrees_to_radians(90))),
-            ship.y + (thrustersize) * (Math.sin(ship.a-degrees_to_radians(90)))
-        );
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-
-        
-        // @note Draw landing gear
-        ctx.strokeStyle = "white";
-        var lg_size_x = SHIP_SIZE/1.2;
-        var lg_size_y = SHIP_SIZE/1.5;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo( // start
-            ship.x + thrustertop * Math.cos(ship.a),
-            ship.y - thrustertop * Math.sin(ship.a)
-        );
-        ctx.lineTo( // end left
-            ship.x - (lg_size_x)*Math.sin(ship.a) - (lg_size_y)*Math.cos(ship.a),
-            ship.y + (lg_size_y)*Math.sin(ship.a) - (lg_size_x)*Math.cos(ship.a)
-        );
-        ctx.stroke();
-        ctx.moveTo( // start
-            ship.x + thrustertop * Math.cos(ship.a),
-            ship.y - thrustertop * Math.sin(ship.a)
-        );
-        ctx.lineTo( // end right
-            ship.x + (lg_size_x)*Math.sin(ship.a) - (lg_size_y)*Math.cos(ship.a),
-            ship.y + (lg_size_y)*Math.sin(ship.a) + (lg_size_x)*Math.cos(ship.a)
-        );
-        ctx.stroke();
-
-        // @note Draw rectangular parts of module
-        // var ret_start = 0.5*SHIP_SIZE;
-        // var ret_end = 1*SHIP_SIZE;
-        // ctx.strokeStyle = "white";
-        // ctx.fillStyle = "blue";
-        // ctx.lineWidth = 1.5;
-        // ctx.beginPath();
-        // ctx.moveTo( // top left
-        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y - ret_end+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // top right
-        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y-ret_end + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear right
-        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y-ret_start + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear left
-        //     ship.x - ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y-ret_start+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.closePath();
-        // ctx.fill();
-        // ctx.stroke();
-
-        // ctx.beginPath();
-        // ctx.moveTo( // top left
-        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y - ret_end+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // top right
-        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y - ret_end + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear right
-        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y - ret_start + ship.r * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear left
-        //     ship.x + ship.r * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y-ret_start+ ship.r * (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.closePath();
-        // ctx.fill();
-        // ctx.stroke();
-
-        //@note Draw top of module
-        var circlesize = SHIP_SIZE/2.5;
-        var circlepos = SHIP_SIZE/1.5;
-        ctx.beginPath();
-        ctx.fillStyle = "black";
-        ctx.arc(ship.x + circlepos * Math.cos(ship.a), ship.y - circlepos * Math.sin(ship.a), circlesize, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
-
-        // @note remove the line between module and top
-        // const tam = SHIP_SIZE/4;
-        // ctx.fillStyle = "black";
-        // ctx.beginPath();
-        // ctx.moveTo( // nose of the ship
-        //     ship.x + 5 / 3 * tam* Math.cos(ship.a),
-        //     ship.y - 5 / 3 * tam * Math.sin(ship.a)
-        // );
-        // ctx.lineTo( // rear left
-        //     ship.x - tam * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y + tam* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear right
-        //     ship.x - tam * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y + tam * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.closePath();
-        // ctx.fill();
-
-        // @note party hat
-        // const tam2 = 3;
-        // ctx.strokeStyle = "red";
-        // ctx.fillStyle = "red";
-        // ctx.lineWidth = 1.5;
-        // ctx.translate(0,-(SHIP_SIZE+3));
-        // ctx.beginPath();
-        // ctx.moveTo( // nose of the ship
-        //     ship.x + 4 / 3 * tam2* Math.cos(ship.a),
-        //     ship.y - 5 / 3 * tam2 * Math.sin(ship.a)
-        // );
-        // ctx.lineTo( // rear left
-        //     ship.x - tam2 * (2 / 3 * Math.cos(ship.a) + Math.sin(ship.a)),
-        //     ship.y + tam2* (2 / 3 * Math.sin(ship.a) - Math.cos(ship.a))
-        // );
-        // ctx.lineTo( // rear right
-        //     ship.x - tam2 * (2 / 3 * Math.cos(ship.a) - Math.sin(ship.a)),
-        //     ship.y + tam2 * (2 / 3 * Math.sin(ship.a) + Math.cos(ship.a))
-        // );
-        // ctx.closePath();
-        // ctx.fill();
-        // ctx.stroke();w
-        // ctx.translate(0,(SHIP_SIZE+3));
-
-        // @note Movement
-        //rotation
-        if (rotation<180 || rotation >= 0)
-        {
-            ship.a += ship.rot;
-        }
-        // thrusting and gravity
-        previous_x = ship.x;
-        previous_y = ship.y;
-        ship.x += ship.thrust.x;
-        ship.y += ship.thrust.y+vel;
-        gravity += grav_inc;
-
-        // @note Fuel consumption
-        if (ship.thrusting == true)
-        {
-            fuel-=(SHIP_THRUST*0.01);
-        }
-        if(fuel == 0)
-        {
-            fuel_on = 0;
-            ctx.fillStyle = "red";
-            ctx.font = "20px Trebuchet MS";
-            ctx.fillText("Out of fuel!",cvs.width/2-60,cvs.height/2-40);
-            ship.thrusting == false;
-        }
-
-        var detection = SHIP_SIZE+lg_size_y-5;
-        //@note Win/lose detection
-        if((altitude <= floor_height+detection) 
-        && (ship.a >= 1.571-angle_lim && ship.a <= 1.571+angle_lim) 
-        && (ship.x>=seg_int*floor_tile_size && ship.x<=(seg_int+1)*floor_tile_size) 
-        && (vel_y <= 1.2))
-        {
-            ship.a = 1.571;
-            ship.thrust = 0;
-            ctx.fillStyle = "greenyellow";
-            ctx.font = "20px Trebuchet MS";
-            ctx.fillText("Successful landing",cvs.width/2-90,cvs.height/2);
-            ctx.fillText("Press Space to restart",cvs.width/2-105,cvs.height/2+30);
-            
-            ship.x = ship.x
-            ship.y = ship.y
-            gravity = 0;       
-            game_on = 2; 
-        }
-        else if(altitude <= floor_height+detection &&
-            !(ship.x>=seg_int*floor_tile_size && (seg_int+1)*floor_tile_size<=580))
-        {
-        ctx.fillStyle = "lightgreen";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("Outside of landing pad",cvs.width/2-110,cvs.height/2+30);
-        ctx.fillText("Press Space to restart",cvs.width/2-105,cvs.height/2+60);
-        game_on = 2; 
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else if(altitude<= floor_height+detection &&
-            ship.a > 1.571+angle_lim)
-        {
-        ctx.fillStyle = "crimson";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
-        ctx.fillText("Tilted module",cvs.width/2-75,cvs.height/2+30);
-        ctx.fillText("Press Space to restart",cvs.width/2-105,cvs.height/2+60);
-        game_on = 2;
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else if(altitude<= floor_height+detection &&
-            ship.a < 1.571-angle_lim)
-        {
-        ctx.fillStyle = "crimson";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
-        ctx.fillText("Tilted module",cvs.width/2-75,cvs.height/2+30);
-        ctx.fillText("Press Space to restart",cvs.width/2-105,cvs.height/2+60);
-        game_on = 2; 
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else if (altitude<= floor_height+detection)
-        {
-        ctx.fillStyle = "crimson";
-        ctx.font = "20px Trebuchet MS";
-        ctx.fillText("Crashed",cvs.width/2-50,cvs.height/2);
-        ctx.fillText("Too fast",cvs.width/2-50,cvs.height/2+30);
-        ctx.fillText("Press Space to restart",cvs.width/2-105,cvs.height/2+60);
-        game_on = 2; 
-        ship.x = ship.x
-        ship.y = ship.y
-        gravity = 0;
-        }
-        else
-        
-        ctx.fillStyle = "white";
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo( 
-            (aux)*floor_tile_size,
-            cvs.height-floor_heights[aux]
-        );
-        ctx.lineTo(
-            (aux-1)*floor_tile_size,
-            cvs.height-floor_heights[aux-1]
-        );
-        ctx.stroke(); 
-
-        requestAnimationFrame(draw);
-    }
-    else if(game_on == 1)
-    {
-        ctx.fillStyle = "white";
-        ctx.font = "25px Trebuchet MS";
-        ctx.fillText("||",cvs.width/2-13,cvs.height/2);
-    }
-}
-
-
-
-//@note Static drawing
-function draw_static()
-{           
-    const SHIP_SIZE_2 = 15;
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, cvs.width, cvs.height);
     ctx.lineWidth = 2;
-    ctx.strokeStyle="#ffffff";
-    ctx.strokeRect(0, 0, cvs.width, cvs.height);//for white background
+    ctx.strokeStyle = "lightsteelblue";
+    ctx.fillStyle = "lightsteelblue";
     
-    // @note Static draw stars
+    ctx.beginPath();
+    
+    //Começa o desenho em current_terrain_x = 0
+    ctx.moveTo(
+        current_terrain_x,
+        terrain_y[0]
+    );
+    for (i = 1; i<terrain; i++)
+    {
+        current_terrain_x += terrain_x[i];
+        ctx.lineTo(
+            current_terrain_x,
+            terrain_y[i]
+        );
+    }   
+    ctx.lineTo(
+        canvas.width,
+        canvas.height
+    );
+    ctx.lineTo(
+        0,
+        canvas.height
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+}
+
+var stars = Math.floor(Math.random() * (150)) + 50;
+var star_size = Array.from({length: stars}, () => Math.floor(Math.random()*3));
+var star_x = Array.from({length: stars}, () => Math.floor(Math.random()*canvas.width));
+var star_y = Array.from({length: stars}, () => Math.floor(Math.random()*canvas.height));
+
+function drawStars()
+{
     ctx.fillStyle = "white";
     ctx.strokeStyle = "white";
     ctx.lineWidth = 0.5;
+    
     for (i = 0; i<stars; i++)
     {
     ctx.beginPath();
@@ -919,191 +112,153 @@ function draw_static()
         star_y[i]
     );
     ctx.lineTo(
-        star_x[i]+star_size,
-        star_y[i]-star_size
+        star_x[i]+star_size[i],
+        star_y[i]-star_size[i]
     );
     ctx.lineTo(
-        star_x[i]+2*star_size,
+        star_x[i]+2*star_size[i],
         star_y[i]
     );
     
     ctx.lineTo(
-        star_x[i]+star_size,
-        star_y[i]+star_size
+        star_x[i]+star_size[i],
+        star_y[i]+star_size[i]
     );
     ctx.fill();
     ctx.closePath();
     ctx.stroke();
-    }
-
-    // // @note Static floor drawing
-    var segment_size = 200;
-    ctx.strokeStyle = "white";
-    ctx.beginPath();
-    ctx.moveTo( 
-        0,
-        cvs.height
-    );
-    ctx.lineTo(
-        0,
-        cvs.height-90
-    );
-    ctx.lineTo(
-        segment_size,
-        cvs.height-75
-    );
-    ctx.lineTo(
-        2*segment_size,
-        cvs.height-110
-    );
-    ctx.lineTo(
-        3*segment_size,
-        cvs.height-105
-    );
-    ctx.lineTo(
-        4*segment_size,
-        cvs.height-65
-    );
-    ctx.lineTo(
-        5*segment_size,
-        cvs.height-100
-    );
-    ctx.lineTo(
-        6*segment_size,
-        cvs.height-110
-    );
-    ctx.lineTo(
-        7*segment_size,
-        cvs.height-80
-    );
-    ctx.lineTo(
-        8*segment_size,
-        cvs.height-50   
-    );
-    ctx.lineTo(
-        10*segment_size,
-        cvs.height-60   
-    );
-    ctx.lineTo(
-        10*segment_size,
-        cvs.height   
-    );
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "lightsteelblue";
-    ctx.fillStyle = "lightsteelblue";
-    ctx.closePath();
-    ctx.fill(); 
-    ctx.stroke(); 
-
-    var static_ship = {
-        x: cvs.width/2,
-        y: 200,
-        r: SHIP_SIZE_2 / 2,
-        a: 2,
-        rot: 0.002,
-        thrusting: false,
-        thrust: {
-            x: 2,
-            y: -0.8
-        }
-    }
-
-    // @note Static ship drawing
-    ctx.strokeStyle = "white";
-    ctx.fillStyle = "black";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo( // nose of the ship
-        static_ship.x + 4 / 3 * static_ship.r * Math.cos(static_ship.a),
-        static_ship.y - 5 / 3 * static_ship.r * Math.sin(static_ship.a)
-    );
-    ctx.lineTo( // rear left
-        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + Math.sin(static_ship.a)),
-        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - Math.cos(static_ship.a))
-    );
-    ctx.lineTo( // rear right
-        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) - Math.sin(static_ship.a)),
-        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) + Math.cos(static_ship.a))
-    );
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // @note Static draw thrusters
-    ctx.fillStyle = "cyan";
-    ctx.strokeStyle = "mediumspringgreen";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo( // rear left
-        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + 0.5 * Math.sin(static_ship.a)),
-        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - 0.5 * Math.cos(static_ship.a))
-    );
-    ctx.lineTo( // rear centre (behind the ship)
-        static_ship.x - 0.8*(static_ship.r) * 5 / 3 * Math.cos(static_ship.a) - (15*Math.cos(static_ship.a)),
-        static_ship.y + 0.8*(static_ship.r) * 5 / 3 * Math.sin(static_ship.a) + (15*Math.sin(static_ship.a))
-    );
-    ctx.lineTo( // rear right
-        static_ship.x -static_ship.r * (2 / 3 * Math.cos(static_ship.a) - 0.5 * Math.sin(static_ship.a)),
-        static_ship.y +static_ship.r * (2 / 3 * Math.sin(static_ship.a) + 0.5 * Math.cos(static_ship.a))
-    );
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // @note Static draw landing gear
-    var ac = 0.45;
-    var size = SHIP_SIZE_2/2;
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo( // start left
-        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) + Math.sin(static_ship.a)),
-        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) - Math.cos(static_ship.a))
-    );
-    ctx.lineTo( // end left
-        
-        static_ship.x - (static_ship.r+size) * (2 / 3 * Math.cos(static_ship.a+ac) + Math.sin(static_ship.a+ac)),
-        static_ship.y + (static_ship.r+size) * (2 / 3 * Math.sin(static_ship.a+ac) - Math.cos(static_ship.a+ac))
-    );
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo( // start right
-        static_ship.x - static_ship.r * (2 / 3 * Math.cos(static_ship.a) - Math.sin(static_ship.a)),
-        static_ship.y + static_ship.r * (2 / 3 * Math.sin(static_ship.a) + Math.cos(static_ship.a))
-    );
-    ctx.lineTo( // end right
-        static_ship.x - (static_ship.r+size) * (2 / 3 * Math.cos(static_ship.a-ac) - Math.sin(static_ship.a-ac)),
-        static_ship.y + (static_ship.r+size) * (2 / 3 * Math.sin(static_ship.a-ac) + Math.cos(static_ship.a-ac))
-    );
-    ctx.stroke();
-
-
-    ctx.fillStyle = "springgreen";
-    ctx.font = "50px Courier";
-    ctx.fillText("Lunar Lander",cvs.width/2-160,cvs.height/2);
-
-    // // @note draw button
-    // ctx.fillStyle = "springgreen";
-    // ctx.fillRect(cvs.width/2-90, cvs.height/2+50, 200, 40);
-    
-    // text
-    ctx.fillStyle = "springgreen";
-    ctx.font = "20px Courier";
-    ctx.fillText("Click to begin",cvs.width/2-73,cvs.height/2+75);
-
-
-    //@note ending
-    document.addEventListener("click", draw);
+    }   
 
 }
 
-// if (game_on == 3)
-// {
-//     draw_static();
-//     game_on = 0;
-// }
-// else
-// {
-    draw();
-// }
+//@note Game drawing
+function draw()
+{ 
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.height);
+
+    // calculate the direction to move the character
+    deltaX = clickX_main - x;
+    deltaY = clickY_main - y;
+    
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    //Só move se clicando ou arrastando E o delta em pelo menos uma das posições é grande
+    if (isMoving && (Math.abs(deltaX) > OFFSET || Math.abs(deltaY) > OFFSET))
+    {
+        vx = deltaX / distance * VEL * 0.5;
+    }
+    else
+    {
+        vx = 0;
+        vy = 0;
+    }
+
+    x += vx;
+    y += vy;
+    
+    // Influência da gravidade
+    free_fall_vel += GRAVITY;
+    if(isMoving)
+    {
+        free_fall_vel -= THRUST; 
+    }
+
+    y += free_fall_vel;
+    
+    charCenterX = x + CHAR_WIDTH / 2;
+    charCenterY = y + CHAR_HEIGHT / 2;
+
+    // calculate the rotated points of the rectangle
+    x1 = x -CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+    y1 = y -CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+
+    x2 = x + CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+    y2 = y + CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+
+    x3 = x + CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
+    y3 = y + CHAR_WIDTH/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
+
+    x4 = x -CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
+    y4 = y -CHAR_WIDTH/2 * Math.sin(angle) + (CHAR_HEIGHT/2 * Math.cos(angle));
+
+    // Desenho do personagem
+    ctx.fillStyle = "#fff";
+    // Desenho da borda do personagem
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#000";
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x3, y3);
+    ctx.lineTo(x4, y4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    drawStars();
+    drawTerrain();
+    requestAnimationFrame(draw);
+}
+
+draw();
+
+// Input Handlers
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+canvas.addEventListener("touchstart", function(e) {
+  
+  // Pega a posição relativa do canvas
+  let canvasRect = canvas.getBoundingClientRect();
+
+  // get the x and y coordinates of the mouse click event
+  clickX = e.touches[0].clientX - canvasRect.left;
+  clickY = e.touches[0].clientY - canvasRect.top;
+  clickX_main = clickX;
+  clickY_main = clickY;
+
+  // Check if the click is inside the shoot button
+  if (clickX > shootX-shootRadius && clickX < shootX+shootRadius && clickY > shootY-shootRadius && clickY < shootY+shootRadius) 
+  {
+      isMoving = false;   
+      shootRadius += 1;
+  }
+  else
+  {
+    // set the flag to indicate that the character should start moving
+    isMoving = true;
+    angle = -Math.atan2(clickY - charCenterY, clickX - charCenterX);
+  }
+
+});
+
+canvas.addEventListener("touchend", function(e) {
+    // set the flag to indicate that the character should stop moving
+    isMoving = false;
+    vx = 0;
+    vy = 0;
+  });
+
+addEventListener("touchmove", function(e) {
+    // only move the character if the flag is set to true
+    let canvasRect = canvas.getBoundingClientRect();
+    if (isMoving) {
+        // get the x and y coordinates of the mouse click event
+        clickX = e.touches[0].clientX - canvasRect.left;
+        clickY = e.touches[0].clientY - canvasRect.top;
+        clickX_main = clickX;
+        clickY_main = clickY;
+        
+        // Check if the click is inside the shoot button
+        if (clickX > shootX-shootRadius && clickX < shootX+shootRadius && clickY > shootY-shootRadius && clickY < shootY+shootRadius) 
+        {
+            console.log('Click on button'); 
+            isMoving = false;   
+            shootRadius += 1;
+        }
+        else
+        {
+          angle = -Math.atan2(clickY - charCenterY, clickX - charCenterX);
+        }
+    }
+
+});
