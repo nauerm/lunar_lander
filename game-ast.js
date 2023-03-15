@@ -5,12 +5,12 @@ var ctx = canvas.getContext("2d");
 CHAR_WIDTH = 25;
 CHAR_HEIGHT = 25;
 INIT_POS_X = canvas.width/2;
-INIT_POS_Y = 50;
+INIT_POS_Y = canvas.height/2;
 VEL = 3;
 GRAVITY = 0.02;
 THRUST = 0.04;
-ANGLE_INCREMENT = 1e-4;
-MOVE_INCREMENT = 1e-4;
+ANGLE_INCREMENT = 8e-5;
+MOVE_INCREMENT = 1e-3;
 
 //Valor de "offset" para o qual o personagem não segue mais o toque na tela
 OFFSET = CHAR_WIDTH/2; 
@@ -138,13 +138,13 @@ function drawRabo()
 {
         //Rabo do foguete
         // calculate the rotated points of the rectangle
-        x1 = x -0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+        x1 = x -0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle)) + Math.floor(Math.random()*2);
         y1 = y -0.5*CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
     
-        x5 = x - 0.5*CHAR_WIDTH*1.5 * Math.sin(angle);;
-        y5 = y + 0.5*CHAR_HEIGHT * Math.cos(angle);
+        x5 = x - 0.5*CHAR_WIDTH*1.5 * Math.sin(angle) + 1*Math.random(); 
+        y5 = y + 0.5*CHAR_HEIGHT * Math.cos(angle) + 2*Math.random();
     
-        x2 = x + 0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
+        x2 = x + 0.5*CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle)) + Math.floor(Math.random()*2);
         y2 = y + 0.5*CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
     
         // Desenho do rabo do foguete
@@ -163,42 +163,58 @@ function drawRabo()
         ctx.stroke();
 }
 
+// var color1 = 000000;
+// var color2 = 2898254;
+// var color1hex = 0;
+// var color2hex = 0;
+
 function draw()
 { 
-    ctx.clearRect(0, 0, canvas.clientWidth, canvas.height);
+//     if (color2 <= 16777215){
+//         color1 += 1;
+//         color2 += 1;
+//     }
+//     color1hex = parseInt(color1, 10).toString(16);
+//     color2hex = parseInt(color2, 10).toString(16);
+//     canvas.style.background = "linear-gradient(0, #"+color1hex+",  #"+color2hex+")";
+//     console.log(color1);
 
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.height);
     // calculate the direction to move the character
     deltaX = clickX_main - x;
     deltaY = clickY_main - y;
 
     x += vx;
-    y += vy;
     
     charCenterX = x + CHAR_WIDTH / 2;
-    charCenterY = y + CHAR_HEIGHT / 2;
 
-    // Influência da gravidade
-    free_fall_vel += GRAVITY;
     if(isMoving)
     {
         free_fall_vel -= THRUST; 
                 
         if (charCenterX >= clickX_main)
         {
-            //clique foi à esquerda
-            angle -= ANGLE_INCREMENT*deltaX;
+            // Só atualiza angle até 0.65
+            if(angle < 0.65)
+            {
+                //clique foi à esquerda
+                angle -= ANGLE_INCREMENT*deltaX;
+            }
             //move para direita
             vx -= MOVE_INCREMENT*deltaX;
         }
         else if (charCenterX <= clickX_main)
         {
-            //clique foi à direita
-            angle -= ANGLE_INCREMENT*deltaX;
+            // Só atualiza angle até 0.65
+            if(angle > -0.65)
+            {
+                //clique foi à direita
+                angle -= ANGLE_INCREMENT*deltaX;
+            }
             //move para esquerda
             vx -= MOVE_INCREMENT*deltaX;
         }
     }
-    y += free_fall_vel;
 
     // calculate the rotated points of the rectangle
     x1 = x -CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
@@ -233,13 +249,10 @@ function draw()
     ctx.stroke();
 
 
-    if(isMoving)
-    {
-        drawRabo();
-    }
+    drawRabo();
     
-    drawStars();
-    drawTerrain();
+    // drawStars();
+    // drawTerrain();
     requestAnimationFrame(draw);
 }
 
