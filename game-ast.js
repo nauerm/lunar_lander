@@ -168,6 +168,11 @@ function drawRabo()
 // var color1hex = 0;
 // var color2hex = 0;
 
+var blueValue = 0;
+var grayValue = 0;
+var color1 = '';
+var color2 = '';
+
 function draw()
 { 
 //     if (color2 <= 16777215){
@@ -180,6 +185,17 @@ function draw()
 //     console.log(color1);
 
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.height);
+    
+    color1 = `rgb(${grayValue}, ${grayValue}, ${blueValue})`
+    blueValue += 0.05;    
+    grayValue += 0.05;    
+    color2 = `rgb(${grayValue+30}, ${grayValue+30}, ${blueValue+55})`
+    
+    // set the background color
+    canvas.style.background = 'linear-gradient(0,'+ color1 +', ' +color2+')';
+
+    
+
     // calculate the direction to move the character
     deltaX = clickX_main - x;
     deltaY = clickY_main - y;
@@ -216,15 +232,16 @@ function draw()
         }
     }
 
+    VIBRATION = 1.5;
     // calculate the rotated points of the rectangle
-    x1 = x -CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
-    y1 = y -CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+    x1 = x -CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle)) + Math.floor(Math.random()*VIBRATION);
+    y1 = y -CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle)) + Math.floor(Math.random()*VIBRATION);
 
-    x5 = x + CHAR_WIDTH*1.5 * Math.sin(angle);;
-    y5 = y - CHAR_HEIGHT*1.5 * Math.cos(angle);
+    x5 = x + CHAR_WIDTH*1.5 * Math.sin(angle) + Math.floor(Math.random()*VIBRATION);
+    y5 = y - CHAR_HEIGHT*1.5 * Math.cos(angle) + Math.floor(Math.random()*VIBRATION);
 
-    x2 = x + CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle));
-    y2 = y + CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle));
+    x2 = x + CHAR_WIDTH/2 * Math.cos(angle) - (-CHAR_HEIGHT/2 * Math.sin(angle)) + Math.floor(Math.random()*VIBRATION);
+    y2 = y + CHAR_WIDTH/2 * Math.sin(angle) + (-CHAR_HEIGHT/2 * Math.cos(angle)) + Math.floor(Math.random()*VIBRATION);
 
     // Nave triangular, sem x3, y3 e x4, y4
     // x3 = x + CHAR_WIDTH/2 * Math.cos(angle) - (CHAR_HEIGHT/2 * Math.sin(angle));
